@@ -22,7 +22,7 @@
 show tables; 
 
 -- 특정 테이블의 구조 확인 (컬럼, 컬럼타입, null허용여부, key 등)
-desc tbl_menu;
+DESC tbl_menu;
 
 
 SELECT * FROM tbl_category; -- 12개의 행
@@ -57,17 +57,49 @@ FROM
     
 -- 모든 컬럼(*) 조회 (실무에서는 * 사용금지)
 
--- *******************************************************
-
-
--- ********************************************************
+SELECT
+    *
+FROM 
+    tbl_menu;
+    
+SELECT
+    menu_code
+  , menu_name
+  , menu_price
+  , category_code
+  , orderable_status
+FROM
+    tbl_menu;
+    
+/*
+    ## 산술연산 ## 
+    SELECT절에 산술연산식 작성시 산술 연산 결과 조회
+*/
+SELECT 6 + 4;
+SELECT 6 - 4;
+SELECT 6 * 4;
+SELECT 
+    6 / 4       -- 나누기 (1.5)
+  , 6 div 4;    -- 몫 (1)
+SELECT
+    6 % 4
+  , 6 mod 4;
+  
+-- 부가세 포함 계산
+SELECT
+    menu_name
+  , menu_price
+  , menu_price + (menu_price * 0.1) 
+  , menu_price + cast( (menu_price * 0.1) as signed integer )
+FROM 
+    tbl_menu;
 
 /*
     ## 컬럼 별칭(Alias) ##
     조회되는 ResultSet의 컬럼명(헤더) 부분을 내가 원하는 별칭으로 조회 가능
     
     [표현법]
-    컬럼명 [AS] 별칭
+    컬럼명 [AS] 별칭|'별칭'|"별칭"|`별칭`
     
     별칭이 숫자로 시작되거나 공란/특수문자가 있을 경우 반드시 "", '', `` 로 감싸야됨 
 */
@@ -165,16 +197,243 @@ WHERE
     
     -- 대소문자 구분을 원한다면
     -- BINARY orderable_status = 'n' -- 에러발생
+    -- orderable_status <> 'Y'
 ;
 
--- *************************************************
 
+-- 13000원 이상 메뉴 조회 (메뉴명, 가격, 주문가능여부)
+SELECT
+    menu_name
+  , menu_price
+  , orderable_status
+FROM 
+    tbl_menu
+WHERE
+    menu_price >= 13000;
+
+/*
+    ## 논리연산자 ##
+    1. 여러 조건 결과를 하나의 논리 결과로 만들어줌 
+    2. 종류 
+       && AND : 두 조건이 모두 TRUE여야만 최종 TRUE 반환 
+       || OR  : 여러 조건 중 하나의 조건만 TRUE여도 최종 TRUE 반환 
+        ! NOT : 조건에 대한 반대값으로 반환 
 -- 숫자 0을 FALSE로 간주
 -- 0이외의 숫자를 TRUE로 간주
 -- 문자열은 0(FALSE)로 간주
 -- 연산시 NULL을 만나면 연산결과 또한 NULL이 된다. 
+*/
+
+SELECT
+    1 OR 1          -- T or T  => 1(True)
+  , 2 || 2          -- T or T  => 1
+  , -1 || 1         -- T or T  => 1
+  , 1 || 'abc'      -- T       => 1
+  , NULL || NULL    -- NULL    => NULL
+  , 0 OR NULL       -- F or N  => NULL
+  , 1 OR NULL;      -- T       => 1
+  
+-- 가격이 5000원 초과이며 카테고리번호가 10인 메뉴 조회 (모든 컬럼)
+SELECT
+    *
+FROM 
+    tbl_menu
+WHERE
+    menu_price > 5000
+AND category_code = 10;
+
+-- 주문가능하며 카테고리번호가 10인 메뉴 조회 
+SELECT
+    *
+FROM 
+    tbl_menu
+WHERE
+    orderable_status = 'Y'
+AND category_code = 10;
+
+-- 카테고리번호가 4거나 가격이 9000원인 메뉴 중에서
+-- 메뉴번호가 10보다 큰 메뉴 조회 
+SELECT
+    *
+FROM 
+    tbl_menu
+WHERE
+    category_code = 4 
+ OR menu_price = 9000
+AND menu_code > 10; -- 가격이 9000이면서 메뉴번호가 10보다 큰 메뉴 + 카테고리번호가 4인 메뉴
+
+SELECT
+    *
+FROM 
+    tbl_menu
+WHERE
+    (category_code = 4 
+ OR menu_price = 9000)
+AND menu_code > 10; 
+
 
 -- WHERER절에서 OR과 AND연산으로 조건을 작성할때
 -- AND 연산이 OR연산보다 우선순위가 높음**********유의하기
 
+/*
+    ## BETWEEN AND ##
+    숫자, 문자열, 날짜/시간 값의 범위에 대한 조건 제시시 사용
+    
+    [표현법]
+    비교대상 BETWEEN 하한값 AND 상한값
+    
+    비교대상 값이 하한값 이상 상한값 이하일 경우 TRUE 반환 
+*/
+
+-- 가격이 10000~25000원인 메뉴 조회 
+SELECT
+    menu_name
+  , menu_price
+  , category_code
+FROM
+    tbl_menu
+WHERE
+--     menu_price >= 10000 AND menu_price <= 25000;
+    menu_price BETWEEN 10000 AND 25000; -- 8 row
+
+-- 부정 표현
+SELECT
+    menu_name
+  , menu_price
+  , category_code
+FROM
+    tbl_menu
+WHERE
+--    menu_price NOT BETWEEN 10000 AND 25000; -- 13 row
+    NOT menu_price BETWEEN 10000 AND 25000;
+
+-- 사전등재순으로 문자열 범위 비교 
+SELECT
+    menu_name
+  , menu_price
+FROM
+    tbl_menu
+WHERE
+    menu_name BETWEEN '가' AND '마'; -- 가 - 힣
+
+/*
+    ## LIKE ##
+    비교값이 지정한 패턴을 만족하는지 비교해주는 연산자 
+    패턴 작성시 '%', '_' 와일드 카드 작성 가능
+    
+    * 와일드 카드
+      다른 문자로 대체 가능한 특수한 의미를 가진 문자
+      1) % : 0개 이상의 임의의 글자
+      2) _ : 1개의 임의의 글자 
+*/
+-- 메뉴명이 '마'로 시작하는 메뉴 조회 
+SELECT
+    menu_name
+  , menu_price
+FROM
+    tbl_menu
+WHERE
+    menu_name LIKE '마%';
+    
+-- 메뉴명에 '마늘'이 포함되어있는 메뉴 조회 
+SELECT
+    menu_name
+  , menu_price
+FROM
+    tbl_menu
+WHERE
+    menu_name LIKE '%마늘%';
+
+-- 메뉴명이 '밥'으로 끝나는 메뉴 조회 
+SELECT
+    menu_name
+  , menu_price
+FROM
+    tbl_menu
+WHERE
+    menu_name LIKE '%밥';
+    
+-- 쥬스 앞글자가 3글자인 메뉴 조회 
+SELECT
+    menu_name
+  , menu_price
+FROM
+    tbl_menu
+WHERE
+    menu_name LIKE '___쥬스';
+    
+-- '갈치'가 포함되어있지 않은 메뉴 조회
+SELECT
+    menu_name
+  , menu_price
+FROM
+    tbl_menu
+WHERE
+     NOT menu_name LIKE '%갈치%';
+     
+/*
+    ## IN ##
+    비교값이 제시한 목록 중에 존재할 경우 TRUE 반환해주는 연산자
+    
+    [표현법]
+    비교대상 IN (값1, 값2, ..)
+*/
+
+-- 카테고리번호가 4 또는 5 또는 6인 메뉴 
+SELECT
+    menu_name
+  , category_code
+FROM
+    tbl_menu
+WHERE
+--    category_code = 4 OR category_code = 5 OR category_code = 6;
+--    category_code IN (4, 5, 6);
+    category_code NOT IN (4, 5, 6);
+    
+/*
+    ## IS NULL #
+    비교대상이 NULL인지를 비교해주는 연산자
+*/
+
+-- 대분류 카테고리만 조회 (상위카테고리번호가 NULL인 데이터 조회)
+SELECT
+    category_name
+  , ref_category_code
+FROM
+    tbl_category
+WHERE
+--    ref_category_code = NULL; -- 제대로 비교 안됨
+    ref_category_code IS NULL; -- 제대로 비교됨
+
+-- 소분류 카테고리만 조회 (즉, 상위카테고리번호가 NULL이 아닌)
+SELECT
+    category_name
+  , ref_category_code
+FROM
+    tbl_category
+WHERE
+--    ref_category_code != NULL; -- 제대로 비교 안됨
+    ref_category_code IS NOT NULL;
+    
+-- =====================================================================
+
+/*
+    ## ORDER BY 절 ##
+    1. 조회 결과를 정렬하고자 할 때 사용 
+    2. 오름차순 정렬(ASC, 생략시 기본값)과 내림차순 정렬(DESC) 존재
+    3. 표현법
+       ORDER BY 정렬기준 [IS NULL] [정렬방식]
+*/
+SELECT 
+    menu_code
+  , menu_name
+  , menu_price
+FROM
+    tbl_menu
+ORDER BY
+--    menu_price ASC
+--    menu_price        -- 정렬방식 생략시 오름차순
+--    menu_price DESC     
+    menu_price DESC, menu_name ASC -- 정렬기준 여러개 제시 가능
+;
        
