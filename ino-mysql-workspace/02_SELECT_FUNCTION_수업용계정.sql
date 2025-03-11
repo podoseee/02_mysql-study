@@ -72,3 +72,42 @@ FROM
     
 SELECT
     CAST( '2024-5-30' AS DATE);
+
+SELECT
+    menu_name
+  , menu_price
+  , CASE
+        WHEN menu_price < 5000 THEN 'cheap'
+        WHEN menu_price <= 10000 THEN 'normal'
+        WHEN menu_price <= 20000 THEN 'quite expensive'
+        ELSE 'very expensive'
+    END AS 'price level'
+FROM tbl_menu;
+
+SELECT
+    menu_name
+  , CASE orderable_status
+        WHEN 'y' THEN 'orderable'
+        ELSE 'not permitted'
+    END AS 'orderable status'
+FROM
+    tbl_menu;
+    
+SELECT
+    FLOOR(AVG(menu_price))
+  , SUM(MENU_PRICE)
+FROM
+    tbl_menu;
+    
+SELECT
+    AVG(menu_price)
+FROM
+    tbl_menu
+WHERE
+    category_code = 10;
+    
+SELECT
+    COUNT(*)
+  , COUNT(DISTINCT(ref_category_code))
+FROM
+    tbl_category;
