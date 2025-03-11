@@ -100,7 +100,7 @@ SELECT
     FORMAT(숫자, 소수점자리수) : 1000단위마다 콤마(,) 표시를 해주며 소수점 아래 자리수까지 표현(반올림)함
 */
 SELECT
-    FORMAT(1231123123.578923, 3);
+    FORMAT('1231123123.578923', 3);
 
 SELECT
     menu_name
@@ -532,3 +532,99 @@ SELECT
   , IF( ISNULL(ref_category_code), '상위카테고리', '하위카테고리' ) AS "분류"
 FROM
     tbl_category;
+
+/*
+    ## 선택함수 CASE #
+    특정 경우에 따라 선택을 할 수 있는 기능 제공 
+    
+    [표현법1]
+    CASE WHEN 조건1 THEN 결과1
+         WHEN 조건2 THEN 결과2
+         ...
+         [ELSE 결과N]
+    END
+    
+    [표현법2] 
+    CASE 비교대상
+        WHEN 값1 THEN 결과1
+        WHEN 값2 THEN 결과2
+        ...
+        [ELSE 결과N]
+    END
+*/
+
+SELECT
+    menu_name
+  , menu_price
+  , CASE
+        WHEN menu_price < 5000 THEN '싼거'
+        WHEN menu_price <= 10000 THEN '적당한거'
+        WHEN menu_price <= 20000 THEN '좀 비싼거'
+        ELSE '겁나 비싼거'
+    END AS "가격레벨"
+FROM
+    tbl_menu;
+
+SELECT
+    menu_name
+  , CASE orderable_status
+        WHEN 'Y' THEN '주문가능'
+        ELSE '주문불가'
+    END AS "주문가능여부"
+FROM 
+    tbl_menu;
+    
+-- ========================================================
+-- 그룹함수
+-- 하나 이상의 행을 그룹으로 묶은 후 그룹별 연산해서 반환
+-- ========================================================
+
+SELECT
+    menu_price
+FROM
+    tbl_menu;
+
+-- SUM(숫자타입) : 컬럼값들의 총 합을 구해서 반환 (NULL은 연산에서 제외됨)
+-- 전체 메뉴 가격의 총 합 
+SELECT
+    SUM(menu_price)
+FROM
+    tbl_menu;
+    
+-- AVG(숫자타입) : 컬럼 값들의 평균을 구해서 반환 (SUM과 COUNT를 가지고 연산 내부적으로 진행)
+SELECT
+    FLOOR(AVG(menu_price))
+FROM
+    tbl_menu;
+    
+-- 카테고리번호 10번인 메뉴의 평균가격
+SELECT
+    CAST( AVG(menu_price) AS SIGNED INTEGER )
+FROM
+    tbl_menu
+WHERE
+    category_code = 10;
+
+-- COUNT(*|ANY타입) : 해당 데이터의 총 개수 반환
+SELECT
+    COUNT(*)    -- 조회되는 전체행을 다 카운팅함
+  , COUNT(ref_category_code) -- 제시된 컬럼의 값이 존재하는 것만 카운팅함 (즉, NULL은 제외)
+  , COUNT(DISTINCT ref_category_code) -- 제시된 컬럼값들 중 중복제거해서 카운팅함 
+FROM
+    tbl_category;
+    
+-- MAX(ANY타입) : 그룹 내의 최대값을 구해서 반환 
+-- MIN(ANY타입) : 그룹 내의 최소값을 구해서 반환 
+SELECT
+    MAX(menu_price)
+  , MIN(menu_price)
+  , MAX(menu_name)
+  , MIN(menu_name)
+  -- 날짜및시간 => 최대값(최근날짜) / 최소값(옛날날짜)
+FROM
+    tbl_menu;
+
+
+  
+
+
