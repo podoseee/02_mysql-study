@@ -310,3 +310,71 @@ ORDER BY
     -- menu_price DESC
     menu_price DESC, menu_name
 ;
+
+-- 메뉴번호, 메뉴가격, 메뉴부가세포함가격
+-- 부가세포함가격 내림차순 정렬
+
+SELECT
+    menu_code
+    , menu_name
+    , menu_price
+    , CAST((menu_price * 1.1) AS SIGNED INTEGER) AS 부가세포함가격
+FROM
+    tbl_menu
+ORDER BY
+    -- menu_price * 1.1 DESC
+    -- 부가세포함가격 DESC
+    4 DESC -- SELECT 절 순번으로도 사용 가능
+;
+
+SELECT
+    category_code
+    , category_name
+    , ref_category_code
+FROM
+    tbl_category
+ORDER BY
+    -- ref_category_code -- 오름차순 정렬시 NULL이 상단
+    -- ref_category_code IS NULL -- NULL을 하단에 위치
+    -- ref_category_code DESC -- 내림차순 정렬시 NULL이 하단
+    ref_category_code IS NULL DESC, ref_category_code DESC
+    -- 내림차순 정렬시 NULL을 상단에 위치시키고자 할 경우
+;
+
+-- -----------------------------------------------------
+
+-- LIMIT 절
+
+-- Top-N분석
+-- 비싼 메뉴 순으로 상위 5개 조회
+SELECT
+    menu_code
+    , menu_name
+    , menu_price
+FROM
+    tbl_menu
+ORDER BY
+    menu_price DESC
+    , menu_name
+LIMIT
+    # 0, 5 -- 0번 인덱스부터 5개 조회
+    5 -- offset 생략시 0번 인덱스부터 조회
+;
+
+-- 페이징 처리
+-- 총 21건의 데이터를 한페이지에 5건씩 출력 (총 5페이지 == 올림(전체수/한페이지당수))
+
+SELECT
+    *
+FROM
+    tbl_menu
+ORDER BY
+    menu_code DESC
+LIMIT
+    -- 0, 5 -- 1페이지
+    -- 5, 5 -- 2페이지
+    -- 10, 5 -- 3페이지
+    -- 15, 5 -- 4페이지
+    20, 5 -- 5페이지
+;
+
