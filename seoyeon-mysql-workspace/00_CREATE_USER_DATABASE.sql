@@ -45,4 +45,13 @@ GRANT ALL PRIVILEGES ON menudb.* TO 'podoseee'@'%';
 
 SHOW GRANTS FOR 'podoseee'@'%'; -- 계정에 부여된 권한 확인
 
+-- 실습용 database 만들기
 
+-- 사내 시스템 (empdb)
+CREATE DATABASE empdb;
+
+-- 대학 시스템 (chundb)
+CREATE DATABASE chundb;
+
+GRANT ALL PRIVILEGES ON empdb.* TO 'podoseee'@'%';
+GRANT ALL PRIVILEGES ON chundb.* TO 'podoseee'@'%';
