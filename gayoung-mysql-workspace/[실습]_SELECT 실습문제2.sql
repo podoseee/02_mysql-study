@@ -26,4 +26,75 @@ FROM tb_student
 ORDER BY STUDENT_NAME;
 
 -- 3. 학과의 학과 정원을 다음과 같은 형태로 화면에 출력한다.
+SELECT 
+    CONCAT(DEPARTMENT_NAME, '의 정원은 ', CAPACITY, '명 입니다.')
+FROM 
+    tb_department
+;
+
+
+-- 4. 도서관에서 대출 도서 장기 연체자들을 찾아 이름을 게시하고자 한다. 
+--    그 대상자들의 학번이 다음과 같을 때 대상자들을 찾는 적절한 sql 구문을 작성하시오.
+--    A513079, A513090, A513091, A513110, A513119
+SELECT 
+    STUDENT_NAME
+FROM 
+    tb_student
+WHERE
+    STUDENT_NO IN ('A513079', 'A513090', 'A513091', 'A513110', 'A513119')
+ORDER BY
+    STUDENT_NAME DESC
+;
+
+
+-- 5. 입학정원이 20 명 이상 30 명 이하인 학과들의 학과 이름과 계열을 출력하시오.
+SELECT
+    DEPARTMENT_NAME
+  , CATEGORY
+FROM 
+    tb_department
+WHERE
+    CAPACITY BETWEEN 20 AND 30
+;
+
+-- 7. 혹시 전산상의 착오로 학과가 지정되어 있지 않은 학생이 있는지 확인하고자 한다.
+--    어떠한 sql 문장을 사용하면 될 것인지 작성하시오.
+
+SELECT
+    *
+FROM
+    tb_student
+WHERE ISNULL(DEPARTMENT_NO);
+
+-- 8. 수강신청을 하려고 한다. 선수과목 여부를 확인해야 하는데, 선수과목이 존재하는
+--    과목들은 어떤 과목인지 과목번호를 조회해보시오.
+SELECT 
+    CLASS_NO
+FROM
+    tb_class
+WHERE 
+     NOT ISNULL(PREATTENDING_CLASS_NO);
+
+-- 9. 춘 대학에는 어떤 계열(category)들이 있는지 조회해보시오.
+SELECT DISTINCT
+    CATEGORY
+FROM
+    tb_department
+;
+
+-- 10. 19 학번 전주 거주자들의 모임을 만들려고 한다. 휴학한 사람들은 제외하고, 재학중인 학생들의 
+--     학번, 이름, 주민번호를 출력하는 구문을 작성하시오.
+
+SELECT 
+    STUDENT_NO
+  , STUDENT_NAME
+  , STUDENT_SSN
+FROM
+    tb_student
+WHERE
+    STUDENT_ADDRESS LIKE ('전주%')
+    AND ABSENCE_YN = 'N'
+    AND ENTRANCE_DATE LIKE ('2017%')
+;
+    
 
