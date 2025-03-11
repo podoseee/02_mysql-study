@@ -454,3 +454,18 @@ ORDER BY
 --    menu_price DESC -- 가격 내림차순
     menu_price DESC, menu_name ASC
 ;
+
+use menudb;
+
+-- 메뉴번호, 메뉴가격, 메뉴부가세 포함 가격, 부가세  포함가격 내림차순 정렬
+SELECT menu_code, menu_price, menu_price*1.1 AS IncludeTAX 
+FROM tbl_menu
+ORDER BY IncludeTAX DESC;
+
+SELECT category_code, category_name, ref_category_code
+FROM tbl_category
+ORDER BY
+-- ref_category_code IS NULL ASC;
+-- ref_category_code ASC;
+-- ref_category_code DESC;
+ref_category_code IS NULL DESC, ref_category_code DESC;
