@@ -31,3 +31,28 @@ SELECT
     , IF(ISNULL(ref_category_code), '상위', '하위' ) AS '카테고리'
 FROM
     tbl_category;
+
+-- 선택함수 CASE
+-- 표현법 1
+SELECT
+    menu_name
+    , menu_price
+    , CASE
+        WHEN menu_price < 5000 THEN 'CHEAP'
+        WHEN menu_price <= 10000 THEN 'NORMAL'
+        WHEN menu_price <= 20000 THEN 'EXPENSIVE'
+        ELSE 'SUPER EXPENSIVE'
+    END AS '가격LEVEL'
+FROM
+    tbl_menu;
+
+-- 표현법2
+SELECT
+    menu_name
+    , CASE orderable_status
+        WHEN 'Y' THEN 'ORERABLE'
+        WHEN 'N' THEN 'SOLD_OUT'
+    END AS '주문가능여부'
+FROM
+    tbl_menu;
+
