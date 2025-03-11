@@ -460,8 +460,76 @@ ORDER BY
     menu_price DESC, menu_name ASC
 ;
     
+-- 메뉴번호, 메뉴 가격, 메뉴부가세 포함가격
+-- 단 부가세 폭함가격 내림차순
+SELECT
+    menu_code
+    , menu_price
+    , menu_price * 1.1 AS 부가세포함가격
+FROM
+    tbl_menu
+ORDER BY
+--    menu_price * 1.1 DESC
+    부가세포함가격 DESC -- 별칭으로 데이터 조작 가능
+--    3 DESC -- 셀렉트에 작성한 순서를 언급해서도 가능 (별로인거같음)
+;
+
+SELECT
+    category_code
+    , category_name
+    , ref_Category_code
+FROM
+    tbl_category
+ORDER BY
+--    ref_category_code ASC -- 오름차순 정렬시 기본적으로 NULL이 상단에 있음
+--     ref_category_code IS NULL ASC -- 오름차순 정렬시 NULL을 하단에 배치 
+--     ref_category_code DESC -- 내림차순 정렬시 하단에 null배치
+    ref_category_code IS NULL DESC, ref_category_code DESC -- is null desc하면 null이 상단에 있되, 오름차순이되어 다시 DECS해주어야한다. 
+;
+
+-- ============================================================================================================================================================================================
+/*
+    ## LIMIT
+    1. 출력되는 행의 개수를 제한하는 구문
+    2. 주로 ORDER BY절로 정렬한후 LIMIT으로 출력개수를 제한함ALTER
+        Top-N분석, 페이징 처리
+    
+    LIMIT offset, row_count
+    - offset : 출력할 시작 인덱스
+    - row_count : 출력 개수
+*/ 
 
 
+-- Top n 분석, 비싼 메뉴 순
+SELECT
+    menu_code
+    ,menu_name
+    , menu_price
+FROM
+    tbl_menu
+ORDER BY
+    menu_price DESC
+    , menu_name ASC -- 만약 가격이 같으면 이름 기준 오름차순
+LIMIT
+--     0, 5; -- 0번 인덱스부터 상위 5개만
+--    5 -- 시작 인덱스가 0이면 생략 가능 
+    1, 10 -- 1번 인덱스부터 10개
+;
 
+-- 페이징 처리
+-- 총 21거의 데이터를 한 페이지에 5건씩 출력 - 총 5페이지= 올림(전체건수/한페이지건수)
+SELECT
+    *
+FROM
+    tbl_menu
+ORDER BY
+    menu_code DESC
+LIMIT
+--     0,5 -- 1번 페이지
+--     5,5
+--     10,5
+--     15,5
+    20,5
+;
 
 
