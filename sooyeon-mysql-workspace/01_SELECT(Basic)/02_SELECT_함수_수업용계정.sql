@@ -542,13 +542,95 @@ FROM
     tbl_category;
 
 
+/*
+    ## 선택함수
+    특정 경우에 따라 성택을 할 수 있는 기능 제공ALTER
+    
+    - 표현법1
+    CASE WHEN 조건1 THEN 결과1
+         WHEN 조건2 THEN 결과2
+         ...
+         [ELSE 결과 N]
+    END
+    
+    - 표현법2
+    CASE 비교대상
+        WHEN 값1 THEN 결과1
+        WHEN 값2 THEN 결과2
+        ...
+        [ELSE 결과N]
+    END
+*/
 
+SELECT
+    menu_name
+    ,menu_price
+    , CASE
+        WHEN menu_price < 5000 THEN '싼거'
+        WHEN menu_price <= 10000 THEN '적당'
+        WHEN menu_price <= 20000 THEN '비싼'
+        ELSE '비비쌈싸맜맜ㅁ'
+    END AS "가격레벨"
+FROM
+    tbl_menu
+;
 
+SELECT
+    menu_name
+    ,CASE orderable_status
+        WHEN 'Y' THEN '주문가능'
+        WHEN 'N' THEN '주문불가능'
+    END AS "주문가능여부"
+FROM
+    tbl_menu
+;
 
+-- =============================================================================================================
+/*
+    그 룹 함 수
+    하나 이상의 랭을 그룹으로 묶은 후 그룹별 연산해서 반환
+*/
 
+-- SUM(숫자타입) : 컬럼의 총 합을 반환(null은 연산에서 제외)
+SELECT
+    SUM(menu_price) # 228500
+FROM
+    tbl_menu
+;
 
+SELECT
+    FORMAT(AVG(menu_price),2)
+FROM
+    tbl_menu
+;
 
+-- 카테고리 10번인 메뉴의 평균가격
+SELECT
+    CAST(AVG(menu_price) AS SIGNED INTEGER)
+FROM
+    tbl_menu
+WHERE
+    menu_code = 10
+;
 
+-- COUNT() : 해당 데이터의 총 개수를 반환
+SELECT
+    COUNT(*) # 12
+    ,COUNT(ref_category_code) # NULL은 해당되지 않음 # 9
+    , COUNT(DISTINCT ref_category_code) #3 #중복을 제거해서 출력하겠다.
+FROM
+    tbl_category
+;
+
+-- MAX() : 그룹 내의 최대값을 구해서 반환
+-- MIN() : 그룹 내의 최소값을 구해서 반환
+SELECT
+    MAX(menu_price) # 35000
+    , MIN(menu_price) # 2000
+    , MAX(menu_name)
+FROM
+    tbl_menu
+;
 
 
 
