@@ -60,6 +60,13 @@ ORDER BY
     
     2개의 행 조회
 */
+SELECT
+    professor_name
+  , professor_ssn
+FROM
+    tb_professor
+WHERE
+    professor_name NOT LIKE '___';
 
 
     
@@ -83,6 +90,10 @@ ORDER BY
     
     114개의 행 조회
 */
+SELECT
+    SUBSTRING(professor_name,2)
+FROM
+    tb_professor;
 
 
 
@@ -94,6 +105,12 @@ ORDER BY
     3.6
     -----
 */
+SELECT
+    ROUND(AVG(point),1) 평점
+FROM
+    tb_grade
+WHERE
+    student_no = 'A517178';
 
 
     
@@ -104,6 +121,12 @@ ORDER BY
     9
     ---------
 */
+SELECT
+    COUNT(*)
+FROM
+    tb_student
+WHERE
+    COACH_PROFESSOR_NO is null;
 
 
     
@@ -125,7 +148,13 @@ ORDER BY
     -----------------------
     62개의 행 조회
 */
-
+SELECT
+    department_no 학과번호
+  , COUNT(*) AS '학생수(명)'
+FROM
+    tb_student
+GROUP BY 
+    department_no;
 
     
 -- 8. 학과 별 휴학생 수를 파악하고자 한다. 학과 번호와 휴학생 수를 표시하는 sql 문장을 작성하시오.
@@ -149,6 +178,14 @@ ORDER BY
     
     62개의 행 조회
 */
+SELECT
+    department_no 학과코드명
+  , COUNT(CASE WHEN absence_yn = 'Y' THEN 1 ELSE null END)
+FROM
+    tb_student
+GROUP BY 
+    department_no;
+
 
 
     
@@ -169,7 +206,17 @@ ORDER BY
     
     20개의 행 조회
 */
-
+SELECT
+    student_name
+  , COUNT(student_name)
+FROM
+    tb_student
+GROUP BY
+    student_name
+HAVING
+    COUNT(student_name) > 1
+ORDER BY
+    student_name;
 
 
 -- 10. 학번이 A112113 인 김고운 학생의 년도 별 평점을 구하는 sql 문을 작성하시오. 
@@ -183,7 +230,15 @@ ORDER BY
     2021  |	3.5
     --------------------
 */
-
+SELECT
+    SUBSTRING(term_no, 1, 4) 년도
+  , ROUND(AVG(point),1) AS '년도 별 평점'
+FROM 
+    tb_grade
+GROUP BY
+    SUBSTRING(term_no, 1, 4),student_no
+HAVING
+    student_no = 'A112113';
 
     
 -- 11. 학번이 A112113 인 김고운 학생의 년도, 학기 별 평점과 년도 별 누적 평점 , 총평점을 구하는 sql 문을 작성하시오.
@@ -209,3 +264,16 @@ ORDER BY
 
     14개의 행 조회
 */
+SELECT
+    SUBSTRING(term_no, 1, 4) AS 년도
+  , SUBSTRING(term_no, 5, 2) AS 학기
+  , ROUND(AVG(point),1) AS 평점
+FROM 
+    tb_grade
+WHERE
+    student_no = 'A112113'
+GROUP BY
+     SUBSTRING(term_no, 1, 4), SUBSTRING(term_no, 5, 2)
+WITH ROLLUP;
+
+
