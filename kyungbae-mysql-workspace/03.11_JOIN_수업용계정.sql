@@ -114,3 +114,129 @@ FROM
     JOIN department ON dept_id = dept_code
 WHERE
     dept_title != '총무부';
+    
+-- ===========================================================================
+-- 외부조인 OUTER JOIN
+USE menudb;
+
+-- inner join
+SELECT
+    menu_name
+    , category_name
+FROM
+    tbl_menu
+    JOIN tbl_category USING(category_code);
+
+-- LEFT OUTER JOIN
+SELECT
+    menu_name
+    , category_name
+FROM
+    tbl_menu
+    LEFT JOIN tbl_category USING(category_code); 
+    -- 카테고리 번호가 NULL이였던 메뉴 조회
+
+-- RIGHT OUTER JOIN
+SELECT
+    menu_name
+    , category_name
+FROM
+    tbl_menu
+    RIGHT JOIN tbl_category USING(category_code); 
+    -- 카테고리 번호가 1,2,3,7 이였던 카테고리 4개 추가적으로 조회
+    
+-- -------------------------------------------------------------------------
+USE empdb;
+-- 전체 사원에 대해 사원명, 부서명, 급여 조회
+SELECT
+    emp_name
+    , IFNULL(dept_title, '대기중')
+    , salary
+FROM
+    employee e
+    LEFT JOIN department d ON e.dept_code = d.dept_id
+;
+
+-- =========================================================================
+-- 교차조인 CROSS JOIN
+USE menudb;
+SELECT
+    menu_name
+    , category_name
+FROM
+    tbl_menu
+    /*CROSS*/ JOIN tbl_category;
+    
+-- 자가조인 SELF JOIN
+SELECT * FROM tbl_category;
+SELECT
+    a.category_code
+    , a.category_name
+    , a.ref_category_code
+    , b.category_code
+    , b.category_name
+FROM
+    tbl_category a
+    JOIN tbl_category b ON b.category_code = a.ref_category_code;
+
+use empdb;
+-- 사원명과 사수명을 조회
+SELECT * FROM employee;
+SELECT
+    a.emp_name 사원명
+    , b.emp_name 사수명
+FROM
+    employee a
+    JOIN employee b ON b.emp_id = a.manager_id;
+
+-- 비등가조인 (NON-EQUI JOIN)
+SELECT * FROM employee;
+SELECT * FROM sal_grade;
+
+-- 사원명, 급여, 급여등급
+SELECT
+    emp_name
+    , e.sal_level
+    , salary
+    , s.sal_level
+FROM
+    employee e
+    JOIN sal_grade s ON e.salary BETWEEN s.min_sal AND s.max_sal;
+/*WHERE
+    e.sal_level != s.sal_level;*/
+
+-- 다중조인 (multiple join)
+-- 사번, 사원명 부서명, 직급명
+SELECT * FROM employee; -- dept_code, job_code
+SELECT * FROM department; -- dept_id
+SELECT * FROM job; -- job_code
+SELECT
+    emp_id
+    , emp_name
+    , dept_title
+    , job_name
+FROM
+    employee e
+    LEFT JOIN department d ON dept_id = dept_code
+    JOIN job j ON j.job_code = e.job_code;
+
+-- 실습. 사번, 사원명, 부서명, 근무지역명 , 근무국가명, 직급명 조회
+SELECT
+    emp_id
+    , emp_name
+    , dept_title
+    , local_name
+    , national_name
+    , job_name
+FROM
+    employee e
+    LEFT JOIN department ON dept_id = dept_code
+    LEFT JOIN location l ON local_code = location_id
+    LEFT JOIN nation n ON n.national_code = l.national_code
+    JOIN job j ON j.job_code = e.job_code;
+
+
+
+
+
+
