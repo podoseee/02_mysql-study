@@ -145,7 +145,7 @@ FROM
 /*
     ## DISTINCT ##
      컬럼의 중복값을 한번씩 표현하고자 할 때 사용
-     * 유의사항 
+     * 유의사항 : SELECT절에 한번만 기술가능
 */
 
 -- 메뉴별 카테고리
@@ -187,9 +187,10 @@ FROM
        BETWEEN AND  : 특정 범위에 포함되는지 비교
        [NOT] LIKE   : 패턴 부합 여부 비교
        IS [NOT] NULL: NULL 여부 비교
-       [NOt] IN     : 목록에 포함/미포함 되는지 비교
+       [NOT] IN     : 목록에 포함/미포함 되는지 비교
 */
 
+-- 주문 불가능한 메뉴 조회
 SELECT
     menu_name
   , menu_price
@@ -203,7 +204,6 @@ WHERE
 --    orderable_status != 'Y'
     orderable_status <> 'Y'
 ;
-
 
 -- 13000원 이상 메뉴 조회 (메뉴명, 가격, 주문가능여부)
 SELECT
@@ -249,11 +249,7 @@ SELECT
 -- 가격이 5000원 초과이며 카테고리번호가 10인 메뉴 조회
 
 SELECT
-    menu_code
-  , menu_name
-  , menu_price
-  , category_code
-  , orderable_status
+    *
 FROM
     tbl_menu
 WHERE
@@ -444,6 +440,82 @@ ORDER BY
 --    menu_price ASC
 --    mene_price        -- 정렬방식 생략시 오름차순
     menu_price DESC , menu_name ASC -- 정렬기준 여러개 제시 가능
+;
+
+-- 메뉴번호, 메뉴가격, 메뉴부가세포함가격
+-- 단, 부가세포함가격 내림차순 정렬
+SELECT
+    menu_code
+  , menu_price
+  , menu_price * 1.1 AS 부가세포함가격
+FROM
+    tbl_menu
+ORDER BY
+--    menu_price * 1.1 DESC -- 산술연산식 작성 가능
+--    부가세포함가격 DESC -- 별칭 작성 가능 (SELECT절 수행 후기 때문에)
+    3 DESC      -- 컬럼 순번 작성 가능
+;
+
+SELECT
+    category_code
+  , category_name
+  , ref_category_code
+FROM
+    tbl_category
+ORDER BY
+--    ref_category_code ASC  -- 오름차순 정렬시 기본적으로 NULL이 상단에 위치함
+--    ref_category_code IS NULL ASC -- 오름차순 정렬시 NULL을 하단에 위치시키고자 할 경우
+--    ref_category_code DESC -- 내림차순 정렬시 기본적으로 NULL이 하단에 위치함
+        ref_category_code IS NULL DESC, ref_category_code DESC -- 내림차순 정렬시 NULL을 상단에 위치시키고자 할 경우
+;
+
+-- ==============================================================================================
+
+/*
+    ## LIMIT 절 ##
+    1. 출력되는 행의 개수를 제한하는 구문
+    2. 주로 ORDER BY절로 원하는 기준으로 정렬한 뒤 LIMIT절을 이용해서 출력 개수 제한둠
+       (Top-n분석, 페이징 처리)
+    3. 표현법
+       LIMIT offset, row_count
+       
+       > offset    : 출력을 시작할 행수(인덱스)
+       > row_count : 출력 개수
+*/
+
+-- Top-n분석
+-- 비싼 메뉴 순으로 조회
+SELECT
+    menu_code
+  , menu_name
+  , menu_price
+FROM
+    tbl_menu
+ORDER BY
+    menu_price DESC
+  , menu_name ASC
+LIMIT
+--    0, 5   -- 상위 5개만 조회
+--    5      -- offset 생략시 기본적으로 0으로 간주
+  1, 10      -- 2번째 행부터 10개 조회 
+;
+
+-- 페이징 처리
+-- 총 21건의 데이터를 한 페이지에 5건씩 출력 (총 5페이지 == 올림(전체수/한페이지당수 ))
+
+-- 1페이지
+SELECT
+    *
+FROM
+    tbl_menu
+ORDER BY
+    mebu_code DESC
+LIMIT
+--    0, 5 -- 1페이지
+--    5, 5 -- 2페이지
+--    10, 5 -- 3페이지
+--    15, 5 -- 4페이지
+    20, 5 -- 5페이지(마지막 페이지)
 ;
 
 
