@@ -1,30 +1,28 @@
-/*
-    ## BUILT IN FUNTIONS ##
-    1. 내장 함수 
-    2. 전달된 값들을 읽어들여 특정 작업 수행 후 결과값을 반환하는 함수 
+
+/* 
+    ## BUILT IN FUNCTIONS ##
+    1. 내장 함수
+    2. 전달된 값들을 읽어들여 특정 작업 수행 후 결과값을 반환하는 함수
     3. 흐름
-       호출(값 전달) -> 작업 수행 -> 결과값 반환 
+       호출(값 전달) >> 작업 수행 >>결과값 반환 
     4. API Docs
        https://dev.mysql.com/doc/refman/8.0/en/built-in-function-reference.html
        https://www.w3schools.com/mysql/mysql_ref_functions.asp
     5. 종류
-       1) 단일행함수 : 각 행마다 반복적으로 작업을 수행하여 결과를 반환 (즉, N개의 값을 읽어들여 N개의 결과 반환)
+       1 ) 단일행함수 : 각 행마다 반복적으로 작업을 수행하여 결과를 반환 (즉, N개의 값을 읽어들여 N개의 결과 반환)
           - 문자처리함수
           - 숫자처리함수
           - 날짜/시간처리함수
           - 기타함수 
        2) 그룹함수   : 여러행들이 그룹으로 형성되어 적용됨. 그룹당 1개의 결과 반환 (즉, N개의 값을 읽어들여 1개의 결과 반환)
 */
-
--- ==============================
---  단일행함수 - 문자처리함수
--- ==============================
-
+    
 /*
     ## ASCII, CHAR ##
     1. ASCII(문자) : 해당 문자의 아스키 코드값을 반환 
     2. CHAR(숫자)  : 해당 아스키 코드 숫자의 문자값을 반환 
 */
+
 SELECT ASCII('A'), CHAR(65);
 
 /*
@@ -37,46 +35,46 @@ SELECT ASCII('A'), CHAR(65);
     - 한글 한글자당 - 3Byte (24Bit)
     - 그외 한글자당 - 1Byte (8Bit)
 */
+SHOW VARIABLES LIKE 'character_set_database'; -- 데이터베이스의 문자셋 확인 (utf8mb4) 
 
-SHOW VARIABLES LIKE 'character_set_database'; -- 데이터베이스의 문자셋 확인 (utf8mb4)
+SELECT LENGTH('pie'),BIT_LENGTH('pie'),CHAR_LENGTH('pie');
+SELECT LENGTH('파이'),BIT_LENGTH('파이'), CHAR_LENGTH('파이');
 
-SELECT LENGTH('pie'), BIT_LENGTH('pie'), CHAR_LENGTH('pie');
-SELECT LENGTH('파이'), BIT_LENGTH('파이'), CHAR_LENGTH('파이');
 
-SELECT
+SELECT 
     menu_name
---  , CHAR_LENGTH(menu_name)
-FROM 
-    tbl_menu
-WHERE
-    CHAR_LENGTH(menu_name) = 5; -- 메뉴명이 5글자인 메뉴만 조회 
+  -- , CHAR_LENGTH(menu_name)
+FROM
+  tbl_menu
+WHERE 
+    CHAR_LENGTH(menu_name) = 5 -- 메뉴명이 5글자인 메뉴만 조회
+;
 
 /*
     ## CONCAT, CONCAT_WS ##
-    1. CONCAT(문자열1, 문자열2, ..)            : 해당 문자열들을 다 이어붙인 결과 반환 
-    2. CONCAT_WS(구분자, 문자열1, 문자열2, ..) : 해당 문자열들을 해당 구분자로 이어붙인 결과 반환 
+    1. CONCAT(문자열1, 문자열2, ...) : 해당 문자열들을 다 이어붙인 결과 반환 
+    2. CONCAT_WS(구분자, 문자열1, 문자열2, ..) : 해당 문자열들을 해당 구분자로 이어붙인 결과 반환
 */
-SELECT 
-    CONCAT('호랑이', '기린', '캥거루')
-  , CONCAT_WS(',', '호랑이', '기린', '캥거루');
-
 SELECT
-    CONCAT_WS('-', '2024', '02', '28');
+    -- CONCAT('호랑이', '기린', '캥거루')
+    CONCAT_WS('-', '2024', '02', '28') AS DATE
+;
 
 /*
-    ## ELT, FIELD, FIND_IN_SET ## 
-    1. ELT(찾을위치, 문자열1, 문자열2, ..)     : 나열된 문자열들 중 해당 위치의 "문자열"을 반환 (없으면 NULL 반환)
-    2. FIELD(찾을문자열, 문자열1, 문자열2, ..) :          "         해당 문자열의 "위치"를 반환 (없으면 0 반환)
-    3. FIND_IN_SET(찾을문자열, 문자열리스트)   :    문자열리스트 중                "            (없으면 0 반환)
-                                    ㄴ 단, 문자열리스트는 반드시 ,로 나열된 문자열이여야됨
+    ## ELT, FIELD, FIND_IN_SET ##
+    1. ELT(찾을 위치,문자열1, 문자열2, ..) : 나열된 문자열들 중 해당 위치의 문자열을 반환  (없으면 NULL 반환)
+    2. FIELD(찾을문자열, 문자열1, 문자열2, ...): 나열된 문자열들 중 해당 문자열의 "위치"를 반환 (없으면 0 반환)
+    3. FIND_IN_SET(찾을문자열, 문자열리스트) : 문자열 리스트 중,해당 위치의 문자열을 반환(없으면 0 반환)
+                                                ㄴ 단, 문자열리스트는 반드시 ','로 나열된 문자열이어야됨.
 */
 
 SELECT
-    ELT(2, '사과', '딸기', '바나나')               -- 딸기
-  , FIELD('바나나', '사과', '딸기', '바나나')      -- 3
-  , FIND_IN_SET('사과', '사과,딸기,바나나');       -- 1
-
--- ORDER BY절에서 특정 행을 끌어올리기 위한 용도로 사용 가능 
+    ELT(2, '사과', '딸기', '바나나')  -- 딸기
+  , FIELD('바나나', '사과','딸기', '바나나')  -- 3
+  , FIND_IN_SET('사과', '사과,딸기, 바나나');  -- 1
+  
+  
+  -- ORDER BY절에서 특정 행을 끌어올리기 위한 용도로 사용가능 
 SELECT
     *
 FROM 
@@ -85,6 +83,7 @@ ORDER BY
 --    FIND_IN_SET(menu_code, '15,12') DESC -- menu_code값이 15일 경우 1, menu_code값이 12일 경우 2, 나머지 menu_code값은 0
     FIELD(orderable_status, 'N', 'Y') -- orderable_status값이 N일 경우 1, Y일 경우 2 
 ;
+
 
 /*
     ## INSTR, LOCATE ##
@@ -100,14 +99,17 @@ SELECT
     FORMAT(숫자, 소수점자리수) : 1000단위마다 콤마(,) 표시를 해주며 소수점 아래 자리수까지 표현(반올림)함
 */
 SELECT
-    FORMAT('1231123123.578923', 3);
+    FORMAT(1231123123.578923, 3);
+
+use menudb;
 
 SELECT
     menu_name
   , FORMAT(menu_price, 0)
   , CONCAT( FORMAT(menu_price, 0), '원' ) 
 FROM
-    tbl_menu;
+    tbl_menu
+;
 
 /*
     ## INSERT ##
@@ -142,6 +144,7 @@ SELECT
   , REPLACE(menu_name, '쥬스', 'Juice')
 FROM
     tbl_menu;
+    
 
 /*
     ## LEFT, RIGHT ##
@@ -149,7 +152,7 @@ FROM
     2. RIGHT(문자열, 길이) :       "       오른쪽지점에서부터          " 
 */
 SELECT
-    LEFT('Hello World', 4)
+    LEFT('Hello World', 4 )
   , RIGHT('Hello World', 5);
 
 /*
@@ -234,10 +237,6 @@ SELECT
   , SUBSTRING_INDEX('hong.test@gmail.com', '.', -2);
     
 
--- ==============================
---  단일행함수 - 숫자처리함수
--- ==============================
-
 /*
     ## ABS ## 
     ABS(숫자) : 해당 숫자의 절대값 반환 
@@ -303,19 +302,19 @@ SELECT
   , SIGN(0)
   , SIGN(-10.1);
 
--- ==============================
---  단일행함수 - 날짜/시간처리함수
--- ==============================
+
 
 /*
     ## NOW, SYSDATE, LOCALTIME, LOCALTIMESTAMPT ##
-    현재 날짜 및 시간 정보를 "연-월-일 시:분:초" 형식으로 반환 
+    현재 날짜 및 시간 정보를 "연-월-일 시:분:초" 형식으로 반환
 */
+
 SELECT
     NOW()
   , SYSDATE()
   , LOCALTIME(), LOCALTIME
   , LOCALTIMESTAMP(), LOCALTIMESTAMP;
+
 
 /*
     ## CURDATE, CURRENT_DATE ##
@@ -394,21 +393,12 @@ SELECT
 SELECT
     DATE(NOW())
   , TIME(NOW());
-
-/*
+/* 
     ## EXTRACT ##
-    EXTRACT(UNIT FROM 날짜및시간) : 날짜및시간 로부터 UNIT에 해당 하는 값 추출해서 반환 
-    
-    * UNIT 목록
-    - YEAR_MONTH    : 연월
-    - YEAR          : 연도
-    - MONTH         : 월
-    - DAY           : 일
-    - DAY_HOUR, HOUR: 시
-    - HOUR_MINUTE   : 분
-    - MINUTE        : 분
-    - SECOND        : 초
-    - MICROSECOND   : 마이크로초
+    EXTRACT (UNIT FROM 날짜 및 시간) : 날짜 맟 시간으로부터 UNIT에 해당하는 값 추출해서 반환 
+    UNIT 목록 : YEAR_MONTH, YEAR, MONTH, DAY, DAY_HOUR(HOUR), MINUTE, SECOND, MICROSECOND 
+  
+
 */
 
 SELECT EXTRACT(SECOND FROM NOW());
@@ -532,97 +522,74 @@ SELECT
   , IF( ISNULL(ref_category_code), '상위카테고리', '하위카테고리' ) AS "분류"
 FROM
     tbl_category;
-
+    
 /*
-    ## 선택함수 CASE #
-    특정 경우에 따라 선택을 할 수 있는 기능 제공 
-    
-    [표현법1]
-    CASE WHEN 조건1 THEN 결과1
-         WHEN 조건2 THEN 결과2
-         ...
-         [ELSE 결과N]
-    END
-    
-    [표현법2] 
-    CASE 비교대상
-        WHEN 값1 THEN 결과1
-        WHEN 값2 THEN 결과2
-        ...
-        [ELSE 결과N]
-    END
+    ## 선택함수 CASE ##
+    특정 경우에 따라 선택을 할수 있는 기능 제공
+        
+        [표현1]
+        CASE WHEN 조건 THEN 결과
+             WHEN 조건 THEN 결과
+             ... 
+             [ELSE 결과] 
+        END
+        
+        [표현2]
+        CASE 비교대상 
+            WHEN 조건 THEN 결과
+            WHEN 조건 THEN 결과
+             ... 
+             [ELSE 결과] 
+        END
 */
+use menudb;
 
 SELECT
     menu_name
   , menu_price
-  , CASE
+  , CASE 
         WHEN menu_price < 5000 THEN '싼거'
         WHEN menu_price <= 10000 THEN '적당한거'
         WHEN menu_price <= 20000 THEN '좀 비싼거'
         ELSE '겁나 비싼거'
-    END AS "가격레벨"
-FROM
+    END AS 가격레벨
+FROM 
     tbl_menu;
 
+
+-- ==============
+-- 그룹함수
+-- ==============
+
+-- SUM(숫자타입) : 칼럼값들의 총 합을 구해서 반환 (NULL은 연산에서 제외됨)
+
 SELECT
-    menu_name
-  , CASE orderable_status
-        WHEN 'Y' THEN '주문가능'
-        ELSE '주문불가'
-    END AS "주문가능여부"
+    SUM(menu_price)
 FROM 
     tbl_menu;
     
--- ========================================================
--- 그룹함수
--- 하나 이상의 행을 그룹으로 묶은 후 그룹별 연산해서 반환
--- ========================================================
+-- AVG(숫자타입) : 칼럼값들의 평균을 구해서 반환 (SUM과 COUNT를 가지고 연산 내부적으로 진행), (마찬가지로 NULL은 제외됨)
+
+use menudb; 
 
 SELECT
-    menu_price
-FROM
-    tbl_menu;
-
--- SUM(숫자타입) : 컬럼값들의 총 합을 구해서 반환 (NULL은 연산에서 제외됨)
--- 전체 메뉴 가격의 총 합 
-SELECT
-    SUM(menu_price)
-FROM
-    tbl_menu;
-    
--- AVG(숫자타입) : 컬럼 값들의 평균을 구해서 반환 (SUM과 COUNT를 가지고 연산 내부적으로 진행)
-SELECT
-    FLOOR(AVG(menu_price))
-FROM
-    tbl_menu;
-    
--- 카테고리번호 10번인 메뉴의 평균가격
-SELECT
-    CAST( AVG(menu_price) AS SIGNED INTEGER )
-FROM
+    CAST(AVG(menu_price) AS SIGNED INTEGER ) 
+FROM 
     tbl_menu
-WHERE
+WHERE 
     category_code = 10;
-
--- COUNT(*|ANY타입) : 해당 데이터의 총 개수 반환
+    
 SELECT
-    COUNT(*)    -- 조회되는 전체행을 다 카운팅함
+    COUNT(*)  -- 조회되는 전체행을 다 카운팅함
   , COUNT(ref_category_code) -- 제시된 컬럼의 값이 존재하는 것만 카운팅함 (즉, NULL은 제외)
-  , COUNT(DISTINCT ref_category_code) -- 제시된 컬럼값들 중 중복제거해서 카운팅함 
+  , COUNT(DISTINCT ref_category_code)
 FROM
     tbl_category;
     
--- MAX(ANY타입) : 그룹 내의 최대값을 구해서 반환 
--- MIN(ANY타입) : 그룹 내의 최소값을 구해서 반환 
-SELECT
-    MAX(menu_price)
-  , MIN(menu_price)
-  , MAX(menu_name)
-  , MIN(menu_name)
-  -- 날짜및시간 => 최대값(최근날짜) / 최소값(옛날날짜)
-FROM
-    tbl_menu;
+-- MAX(ANY타입) : 그룹 내의 최대값을 구해서 반환  -- ㅎ, 최근날짜
+-- MIN(ANY타입) : 그룹 내의 최소값을 구해서 반환  -- ㄱ, 옛날날짜
 
 
-  
+
+
+
