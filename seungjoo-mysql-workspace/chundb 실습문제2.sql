@@ -11,18 +11,14 @@ use chundb;
     
     1개의 행 조회
 */
-SELECT
-    student_name
-FROM
-    tb_student
-WHERE
-    department_no = 001
-AND (STUDENT_SSN LIKE '_______2%' OR STUDENT_SSN LIKE '_______4%')
-AND ABSENCE_YN = 'Y';
-    
-    
+SELECT * FROM tb_department;
+SELECT * FROM tb_student;
 
-
+SELECT student_name
+FROM tb_student JOIN tb_department 
+ON tb_department.department_name='국어국문학과'  
+AND tb_student.department_no = tb_department.department_no
+WHERE ABSENCE_YN = 'Y' and (substring(STUDENT_SSN, 8, 1) IN (2,4));
 
 -- 2. 영어영문학과(학과코드 '002') 학생들의 학번과 이름, 입학년도를 입학년도가 빠른순으로 표시하는 SQL 문장을 작성하시오.
 --    (단, 헤더는 "학번", "이름", "입학년도" 가 표시되도록 한다.)
@@ -36,16 +32,20 @@ AND ABSENCE_YN = 'Y';
     
     3개의 행 조회
 */
+SELECT * FROM tb_department;
+SELECT * FROM tb_student;
+
 SELECT
     student_no AS 학번
-  , student_name AS 이름
-  , entrance_date AS 입학년도
+    ,student_name AS 이름
+    , DATE_FORMAT(entrance_date, '%Y-%m-%d') as 입학년도
 FROM
     tb_student
-WHERE 
-    department_no = 002
+WHERE
+    department_no = '002'
 ORDER BY
-    entrance_date ASC;
+    entrance_date;
+    
 
 
 
@@ -60,15 +60,14 @@ ORDER BY
     
     2개의 행 조회
 */
+SELECT * FROM tb_professor;
 SELECT
     professor_name
-  , professor_ssn
+    ,professor_ssn
 FROM
     tb_professor
 WHERE
-    professor_name NOT LIKE '___';
-
-
+    CHAR_LENGTH(professor_name) <> 3;
     
 -- 4. 교수들의 이름 중 성을 제외한 이름만 출력하는 sql 문장을 작성하시오. 
 --    단, 출력 헤더는’이름’ 이 찍히도록 한다. (성이 2 자인 경우는 교수는 없다고 가정하시오)
@@ -91,12 +90,9 @@ WHERE
     114개의 행 조회
 */
 SELECT
-    SUBSTRING(professor_name,2)
-FROM
+    SUBSTRING(professor_name,2) AS 이름
+FROM 
     tb_professor;
-
-
-
 -- 5. 학번이 A517178 인 한아름 학생의 학점 총 평점을 구하는 sql 문을 작성하시오.
 --    단, 이때 출력 화면의 헤더는 "평점" 이라고 찍히게 하고, 점수는 반올림하여 소수점 이하 한자리까지만 표시한다.
 /*
@@ -105,30 +101,29 @@ FROM
     3.6
     -----
 */
-SELECT
-    ROUND(AVG(point),1) 평점
+SELECT * FROM tb_student;
+SELECT * FROM tb_grade;
+SELECT 
+    ROUND(AVG(Point),1) AS 평점
 FROM
-    tb_grade
-WHERE
-    student_no = 'A517178';
-
+    tb_student ts JOIN tb_grade tb
+ON ts.student_no = tb.student_no 
+AND ts.student_name = '한아름';
 
     
--- 6. 지도 교수를 배정받지 못한 학생의 수는 몇 명 정도 되는지 알아내는 sql 문을 작성하시오.
+-- 6. 지도 교수를 배정받지 못한 학생의tb_grade 수는 몇 명 정도 되는지 알아내는 sql 문을 작성하시오.
 /*
     COUNT(*)
     ---------
     9
     ---------
 */
-SELECT
+SELECT * FROM tb_class;
+SELECT 
     COUNT(*)
-FROM
-    tb_student
-WHERE
-    COACH_PROFESSOR_NO is null;
-
-
+FROM 
+    tb_student t
+WHERE  t.coach_professor_no IS NULL;
     
 -- 7. 학과별 학생수를 구하여 "학과번호", "학생수(명)" 의 형태로 헤더를 만들어 결과값이 출력되도록 하시오.
 /*
@@ -146,15 +141,11 @@ WHERE
     061	     | 7
     062	     | 8
     -----------------------
-    62개의 행 조회
+    62개의 행 조회 
 */
-SELECT
-    department_no 학과번호
-  , COUNT(*) AS '학생수(명)'
-FROM
-    tb_student
-GROUP BY 
-    department_no;
+SELECT DEPARTMENT_NO AS 학과번호,  COUNT(*) AS 학생수
+FROM tb_student
+GROUP BY DEPARTMENT_NO;
 
     
 -- 8. 학과 별 휴학생 수를 파악하고자 한다. 학과 번호와 휴학생 수를 표시하는 sql 문장을 작성하시오.
@@ -178,17 +169,15 @@ GROUP BY
     
     62개의 행 조회
 */
-SELECT
-    department_no 학과코드명
-  , COUNT(CASE WHEN absence_yn = 'Y' THEN 1 ELSE null END)
+select * from tb_student;
+
+SELECT 
+    DEPARTMENT_NO AS 학과코드명
+    ,COUNT(ABSENCE_YN) AS "휴학생 수"
 FROM
     tb_student
-GROUP BY 
-    department_no;
-
-
-
-    
+WHERE ABSENCE_YN = 'Y'
+GROUP BY DEPARTMENT_NO;
 -- 9. 춘 대학교에 다니는 동명이인(同名異人) 학생들의 이름을 찾고자 한다. 어떤 sql 문장을 사용하면 가능하겠는가?
 /*
     동일이름 | 동명인 수
@@ -206,17 +195,15 @@ GROUP BY
     
     20개의 행 조회
 */
-SELECT
-    student_name
-  , COUNT(student_name)
-FROM
+SELECT 
+    student_name AS 동일이름
+    ,COUNT(*) AS "동명인 수"
+FROM 
     tb_student
-GROUP BY
+GROUP BY 
     student_name
-HAVING
-    COUNT(student_name) > 1
-ORDER BY
-    student_name;
+HAVING 
+    COUNT(*) > 1;
 
 
 -- 10. 학번이 A112113 인 김고운 학생의 년도 별 평점을 구하는 sql 문을 작성하시오. 
@@ -230,15 +217,20 @@ ORDER BY
     2021  |	3.5
     --------------------
 */
-SELECT
-    SUBSTRING(term_no, 1, 4) 년도
-  , ROUND(AVG(point),1) AS '년도 별 평점'
+
+SELECT 
+    substring(term_no, 1,4) AS 년도,
+    ROUND(AVG(tb.point), 2) AS "년도 별 평점"
 FROM 
-    tb_grade
+    tb_student tb
+INNER JOIN 
+    tb_grade t ON tb.student_no = t.student_no
+WHERE 
+    tb.student_no = 'A112113'
 GROUP BY
-    SUBSTRING(term_no, 1, 4),student_no
-HAVING
-    student_no = 'A112113';
+    substring(term_no, 1,4);  -- 년도를 기준으로 그룹화
+
+
 
     
 -- 11. 학번이 A112113 인 김고운 학생의 년도, 학기 별 평점과 년도 별 누적 평점 , 총평점을 구하는 sql 문을 작성하시오.
@@ -264,16 +256,12 @@ HAVING
 
     14개의 행 조회
 */
-SELECT
-    SUBSTRING(term_no, 1, 4) AS 년도
-  , SUBSTRING(term_no, 5, 2) AS 학기
-  , ROUND(AVG(point),1) AS 평점
-FROM 
-    tb_grade
-WHERE
-    student_no = 'A112113'
-GROUP BY
-     SUBSTRING(term_no, 1, 4), SUBSTRING(term_no, 5, 2)
+SELECT * FROM TB_GRADE WHERE STUDENT_NO = 'A112113';
+
+SELECT SUBSTRING(TERM_NO, 1, 4) AS "년도", 
+       SUBSTRING(TERM_NO, 5, 2) AS "학기", 
+       ROUND(AVG(POINT), 1) AS "년도 별 평점"
+FROM TB_GRADE
+WHERE STUDENT_NO = 'A112113'
+GROUP BY SUBSTRING(TERM_NO, 1, 4), SUBSTRING(TERM_NO, 5, 2)
 WITH ROLLUP;
-
-
