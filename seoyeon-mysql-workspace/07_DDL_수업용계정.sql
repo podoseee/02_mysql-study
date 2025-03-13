@@ -326,6 +326,7 @@ VALUES (2, 'user02', 'pass02', '이태용', null, null);
 
 SELECT * FROM tbl_user;
 
+COMMIT;
 
 
 
