@@ -134,5 +134,147 @@ FROM
     JOIN department d ON d.dept_id = e.dept_code
 WHERE
     dept_title != '총무부';
+    
+/*
+    ## 외부 조인 (Outer Join) ##
+    좌측/우측 테이블을 기준으로 조인시키는 방법
+    기준이 되는 테이블에는 누락되는 행 없이 조회됨
+    즉, Inner Join에서 특정 테이블에 누락된 행을 같이 조회시키고자 할 때 사용
+*/
 
+-- Inner Join (메뉴테이블에 1개 행 누락, 카테고리테이블에 4개 행 누락)
+SELECT
+    menu_name
+  , category_name
+FROM
+    tbl_menu
+        JOIN tbl_category USING(category_code);
+     
+-- LEFT OUTER JOIN
+SELECT
+    menu_name
+  , category_name
+FROM
+    tbl_menu
+        LEFT /*OUTER*/ JOIN tbl_category USING(category_code); -- 카테고리번호가 NULL이었던 메뉴 1개 추가적으로 조회됨
+        
+SELECT
+    menu_name
+  , category_name
+FROM
+    tbl_menu
+        RIGHT JOIN tbl_category USING(category_code); -- 카테고리 번호가 1,2,3,7 이였던 카테고리 4개 추가적으로 조회됨
+        
+use empdb;
+
+-- 전체 사원에대해 사원명, 부서명, 급여 조회
+SELECT
+    emp_name AS 사원명
+  , IFNULL(dept_title, '부서없음') AS 부서명
+  , salary AS '급여 조회'
+FROM
+    employee
+        LEFT JOIN department on dept_id = dept_code;
+
+/*
+    ## 교차 조인 (Cross Join, Cartesian Product) ##
+    모든 테이블의 각 행들이 서로 매핑된 데이터가 조회됨 (곱집합)
+    두 테이블의 행들이 모두 곱해진 행들의 조합이 출력
+*/
+use menudb;
+SELECT
+    menu_name
+  , category_name
+FROM
+    tbl_menu
+        JOIN tbl_category;
+        
+/*
+    ## 자가 조인 (SELF JOIN) ##
+    조인 할 때 다른 테이블이 아닌 자기 자신과 조인을 맺는 방식
+*/
+SELECT * FROM tbl_category;
+
+-- 카테고리명과 상위카테고리명을 조회
+SELECT
+    c1.category_code
+  , c1.category_name
+  , c1.ref_category_code
+  , c2.category_code
+  , c2.category_name
+FROM
+    tbl_category c1 -- c1.ref_category_code와 일치하는 카테고리번호를 가진 카테고리명을 조회
+        JOIN tbl_category c2 ON c2.category_code = c1.ref_category_code
+;
+
+use empdb;
+-- 실습. 사원명과 사수명을 조회하시오.
+--       사수에 대한 정보는 manager_id를 통해 기록하고 있음
+SELECT
+    e1.emp_name 사원명
+--  , e1.manager_id
+  , IFNULL(e2.emp_name, '없음') 사수명
+FROM
+    employee e1
+        LEFT JOIN employee e2 ON e2.emp_id = e1.manager_id;
+        
+/*
+    ## 비등가조인 (NON-EQUI-JOIN) ##
+    매칭시킬 컬럼에 대한 조건을 =이 아니라 다른 연산자로 할 경우
+*/
+SELECT * FROM employee; -- salary
+SELECT * FROM sal_grade; -- min_sal, max_sal
+
+-- 사원명, 급여, 급여등급
+SELECT
+    emp_name
+  , salary
+  , s.sal_level
+FROM
+    employee e
+        JOIN sal_grade s ON e.salary BETWEEN s.min_sal AND s.max_sal;
+        
+/*
+    ## 다중 조인 (Multiple Join)
+*/
+-- 사번, 사원명, 부서명, 직급명
+SELECT * FROM employee;   -- dept_code, job_code
+SELECT * FROM department; -- dept_id
+SELECT * FROM job;        --            job_code
+
+SELECT
+    emp_id
+  , emp_name
+  , dept_title
+  , job_name
+FROM
+    employee e
+        LEFT JOIN department ON dept_id = dept_code
+        JOIN job j ON j.job_code = e.job_code;
+        
+-- 실습. 사번, 사원명, 근무지역명
+SELECT
+    emp_id 사번
+  , emp_name 사원명
+  , local_name 근무지역명
+FROM 
+    employee
+        LEFT JOIN department ON dept_id = dept_code
+        JOIN location ON local_code = location_id;
+        
+-- 실습. 사번, 사원명, 부서명, 근무지역명, 근무국가명, 직급명 조회
+SELECT
+    emp_id
+  , emp_name
+  , IFNULL(dept_title , '없음')
+  , IFNULL(local_name , '없음')
+  , IFNULL(national_name , '없음')
+  , job_name
+FROM
+    employee e
+        LEFT JOIN department ON dept_id = dept_code
+        LEFT JOIN location l ON local_code = location_id
+        LEFT JOIN nation n ON n.national_code = l.national_code
+        JOIN job j ON j.job_code = e.job_code
+;
 
