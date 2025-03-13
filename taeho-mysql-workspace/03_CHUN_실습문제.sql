@@ -206,3 +206,64 @@ ORDER BY AVG(g.point) DESC;
 
 -- 16. 환경조경학과 전공과목들의 과목 별 평점을 파악할 수 있는 SQL 문을 작성하시오.
 select * from tb_class;
+select * from tb_class where department_no = 034;
+select * from tb_department where department_name = '환경조경학과';
+select * from tb_student;
+select * from tb_student where department_no = 034;
+select * from tb_grade;
+
+SELECT 
+    c.class_no
+    ,c.class_name
+    , AVG(g.point) AS '평점'
+FROM tb_class c
+JOIN tb_grade g ON c.class_no = g.class_no
+WHERE c.department_no = '034'
+AND c.class_type IN ('전공필수', '전공선택')
+GROUP BY c.class_no, c.class_name
+ORDER BY c.class_no ASC;
+
+-- 17. 춘 기술대학교에 다니고 있는 최경희 학생과 같은과 학생들의 이름과 주소를 출력하는 SQL 문을 작성하시오. (이름 오름차순)
+SELECT 
+student_name
+, student_address
+FROM tb_student
+WHERE department_no = '038'
+-- AND student_name != '최경희';
+ORDER BY student_name;
+
+-- 18. 국어국문학과에서 총 평점이 가장 높은 학생의 이름과 학번을 표시하는 SQL 문을 작성하시오.
+select * from tb_department;
+select * from tb_student where department_no = 001;
+select * from tb_grade;
+
+SELECT
+s.student_no
+, s.student_name
+-- , AVG(g.point)
+FROM tb_student s
+LEFT JOIN tb_grade g ON g.student_no = s.student_no
+WHERE s.department_no = '001'
+GROUP BY s.student_no
+ORDER BY AVG(g.point) DESC
+LIMIT 1;
+
+-- 19. 춘 기술대학교의 "환경조경학과"가 속한 같은 계열 학과들의 학과 별 전공과목 평점을 파악하기 위한 적절한 SQL 문을 찾아내시오.
+--     단, 출력헤더는 "계열 학과명", "전공평점"으로 표시되도록 하고, 평점은 소수점 한 자리까지만 반올림하여 표시되도록 한다.
+select * from tb_department where department_name = '환경조경학과';
+select * from tb_class;
+select * from tb_grade;
+
+SELECT
+     d.department_name AS '계열 학과명'
+ , ROUND(AVG(g.point), 1) AS '전공평점'
+FROM tb_department d
+JOIN tb_class c ON c.department_no = d.department_no
+JOIN tb_grade g ON g.class_no = c.class_no
+WHERE d.category = '자연과학'
+AND c. department_no between 022 AND 041
+AND c.class_type IN('전공필수', '전공선택')
+GROUP BY d.department_no
+ORDER BY d.department_name ASC;
+
+use chundb;
