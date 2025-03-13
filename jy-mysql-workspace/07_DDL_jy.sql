@@ -325,3 +325,5 @@ VALUES (2, 'user02', 'pass02', '김말순', null, null);
 -- check 제약조건이라 해도 기본적으로 NULL 허용
 
 SELECT * FROM tbl_user;
+
+COMMIT;
