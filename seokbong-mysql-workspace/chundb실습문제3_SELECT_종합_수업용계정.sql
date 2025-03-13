@@ -85,7 +85,16 @@ ORDER BY
     
     88개의 행 조회
 */
-
+SELECT
+    student_name 학생이름
+  , student_no 학번
+  , student_address AS '거주지 주소'
+FROM
+    tb_student
+WHERE   
+    (student_address LIKE '경기%'
+OR student_address LIKE '강원%')
+ AND entrance_date LIKE '202%';
 
 
 
@@ -103,7 +112,16 @@ ORDER BY
     
     4개의 행 조회
 */
-
+SELECT
+    professor_name
+  , professor_ssn
+FROM
+    tb_professor
+        JOIN tb_department USING (department_no)
+WHERE
+    department_name = '법학과'
+ORDER BY
+    professor_ssn ASC;
 
 
 
@@ -119,7 +137,17 @@ ORDER BY
     
     3개의 행 조회
 */
-
+SELECT
+    student_no
+ , point
+FROM
+    tb_student
+        JOIN tb_grade USING(student_no)
+WHERE
+    class_no = 'C3118100'
+AND term_no = '202202'
+ORDER BY
+    point DESC;
 
 
 
@@ -142,7 +170,15 @@ ORDER BY
     
     588개의 행 조회
 */
-
+SELECT
+    student_no
+  , student_name
+  , department_name
+FROM
+    tb_student
+        JOIN tb_department USING (department_no)
+ORDER BY
+    student_name;
 
 
 
@@ -165,7 +201,15 @@ ORDER BY
     
     882개의 행 조회
 */
-
+SELECT
+    class_name
+  , department_name
+FROM
+    tb_class
+        JOIN tb_department USING(department_no)
+ORDER BY 
+    department_name
+  , class_name;
 
 
 
@@ -186,7 +230,16 @@ ORDER BY
     
     776개의 행 조회
 */
-
+SELECT
+    class_name
+  , professor_name
+FROM
+    tb_class
+        JOIN tb_class_professor cp USING(class_no)
+        JOIN tb_professor p ON p.professor_no = cp.professor_no
+ORDER BY
+    professor_name
+  , class_name;
 
 
 
@@ -211,7 +264,19 @@ ORDER BY
     
     197개의 행 조회
 */
-
+SELECT
+    class_name
+  , professor_name
+FROM
+    tb_class
+        JOIN tb_class_professor cp USING(class_no)
+        JOIN tb_professor p ON p.professor_no = cp.professor_no
+        JOIN tb_department d ON d.department_no = p.department_no
+WHERE
+    category = '인문사회'
+ORDER BY
+    professor_name
+  , class_name;
 
 
 
@@ -234,7 +299,20 @@ ORDER BY
     8개의 행 조회
     
 */
-
+SELECT
+    student_no 학번
+  , student_name '학생 이름'
+  , ROUND(AVG(point),1) 학점
+FROM
+    tb_student s
+        JOIN tb_grade USING(student_no)
+        JOIN tb_department d ON d.department_no = s.department_no 
+WHERE
+    department_name = '음악학과'
+GROUP BY
+    student_no
+ORDER BY
+    학점 DESC;
 
 
 
@@ -249,7 +327,16 @@ ORDER BY
     경제학과	| 손건영   | 박태환
     --------------------------------------
 */
-
+SELECT
+    department_name 학과이름
+  , student_name 학생이름
+  , professor_name 지도교수이름
+FROM
+    tb_student 
+        JOIN tb_department USING(department_no)
+        JOIN tb_professor ON professor_no = COACH_PROFESSOR_NO
+WHERE
+    student_no ='A313047';
 
 
 
@@ -261,6 +348,16 @@ ORDER BY
     최지현	     | 202201
     -------------------------
 */
+SELECT
+    student_name
+  , term_no
+FROM
+    tb_student
+        JOIN tb_grade g USING(student_no)
+        JOIN tb_class c ON c.class_no = g.class_no
+WHERE
+    term_no LIKE '2022%'
+AND class_name = '인간관계론';
 
 
 
@@ -284,8 +381,21 @@ ORDER BY
     
     44개의 행 조회
 */
-
-
+SELECT
+    class_name
+  , department_name
+FROM
+    tb_class c
+        LEFT JOIN tb_class_professor cs USING (class_no)
+        LEFT JOIN tb_professor p ON p.professor_no = cs.professor_no
+        LEFT JOIN tb_department d ON d.department_no =  c.department_no
+WHERE   
+    d.category ='예체능'
+AND
+    cs.professor_no is null
+ORDER BY
+    department_name 
+  , class_name ;
 
 
 -- 14. 춘 기술대학교 서반아어학과 학생들의 지도교수를 게시하고자 한다. 
@@ -312,8 +422,18 @@ ORDER BY
     
     14개의 행 조회
 */
-
-
+SELECT
+    student_name 학생이름
+  , IFNULL(professor_name,'지도교수 미지정') 지도교수
+FROM
+    tb_student s
+        LEFT JOIN tb_professor ON professor_no = COACH_PROFESSOR_NO
+        LEFT JOIN tb_department d ON d.department_no = s.department_no
+WHERE
+    department_name = '서반아어학과'
+ORDER BY
+    entrance_date ASC;
+ 
 
 
 -- 15. 휴학생이 아닌 학생 중 평점이 4.0 이상인 학생을 찾아 그 학생의 학번, 이름, 학과 이름, 평점을 출력하는 SQL 문을 작성하시오.
@@ -335,7 +455,23 @@ ORDER BY
     
     38개의 행 조회
 */
-
+SELECT
+    s.student_no 학번
+  , student_name 이름
+  , department_name '학과 이름'
+  , ROUND(AVG(point),2) 평점
+FROM
+    tb_student s
+        JOIN tb_department d ON d.department_no = s.department_no
+        JOIN tb_grade g ON g.student_no = s.student_no
+WHERE
+    absence_yn= 'N'
+GROUP BY
+    s.student_no
+HAVING
+    평점 >= 4.0
+ORDER BY
+    평점 DESC;
 
 
 
@@ -352,7 +488,21 @@ ORDER BY
     C5009300	| 단지계획및설계스튜디오  | 3.357142
     -------------------------------------------------
 */
-
+SELECT
+    c.class_no
+  , class_name
+  , AVG(point)
+FROM
+    tb_class c
+        JOIN tb_department d ON d.department_no = c.department_no
+        JOIN tb_grade g ON g.class_no = c.class_no
+WHERE
+    department_name = '환경조경학과'
+AND class_type LIKE '전공%'
+GROUP BY
+    c.class_no
+ORDER BY
+    c.class_no;
 
 
 
@@ -374,7 +524,18 @@ ORDER BY
     
     17개의 행 조회
 */
-
+SELECT
+    s.student_name
+  , student_address
+FROM
+    tb_student s
+        JOIN tb_department d ON d.department_no = s.department_no
+WHERE
+    s.department_no = (SELECT department_no
+                       FROM tb_student
+                      WHERE student_name = '최경희') 
+ORDER BY
+    student_name;
 
 
 
@@ -385,7 +546,21 @@ ORDER BY
     A9931165	   | 송근우
     -------------------------
 */
-
+SELECT
+    s.student_no
+  , student_name 
+FROM
+    tb_student s
+        JOIN tb_department d ON d.department_no = s.department_no
+        JOIN tb_grade g ON g.student_no = s.student_no
+WHERE
+    department_name = '국어국문학과' 
+GROUP BY
+    s.student_no
+ORDER BY
+    AVG(POINT) DESC
+LIMIT
+1;
 
 
     
@@ -407,8 +582,18 @@ ORDER BY
     
     20개의 행 조회
 */
-
-
-
-
+SELECT
+    d.department_name
+  , ROUND(AVG(point),1)
+FROM 
+    tb_department d
+        LEFT JOIN tb_student s ON s.department_no = d.department_no
+        LEFT JOIN tb_grade g ON g.student_no = s.student_no
+WHERE
+    category = '자연과학'
+GROUP BY
+    d.department_name
+ORDER BY
+    department_name;
+    
 
