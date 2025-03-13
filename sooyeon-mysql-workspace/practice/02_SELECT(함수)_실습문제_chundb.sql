@@ -13,12 +13,13 @@ use chundb;
 */
 SELECT
     STUDENT_NAME
-    , DEPARTMENT_NAME
 FROM
     tb_student s
     JOIN tb_department d ON d.DEPARTMENT_NO = s.DEPARTMENT_NO
-HAVING
-    DEPARTMENT_NO = '국어국문학과'
+WHERE
+    d.DEPARTMENT_NAME = '국어국문학과'
+AND ABSENCE_YN = 'Y'
+AND SUBSTRING(STUDENT_SSN,8,1) IN (2,4)
 ;
     
 
@@ -35,7 +36,17 @@ HAVING
     
     3개의 행 조회
 */
-
+SELECT
+    STUDENT_NAME
+    ,STUDENT_NO
+    ,DATE_FORMAT(ENTRANCE_DATE,"%Y-%m-%d")
+FROM
+    tb_student
+WHERE
+    DEPARTMENT_NO = '002'
+ORDER BY
+    ENTRANCE_DATE
+;
 
 
 -- 3. 춘 기술대학교의 교수 중 이름이 세 글자가 아닌 교수가 한 명 있다고 한다.
@@ -49,6 +60,14 @@ HAVING
     
     2개의 행 조회
 */
+SELECT
+    PROFESSOR_NAME
+    ,PROFESSOR_SSN
+FROM
+    tb_professor
+WHERE
+    CHAR_LENGTH(PROFESSOR_NAME) != 3;
+;
 
 
     
@@ -72,7 +91,13 @@ HAVING
     
     114개의 행 조회
 */
-
+SELECT
+    SUBSTRING(PROFESSOR_NAME,2)
+FROM
+    tb_professor
+WHERE
+    CHAR_LENGTH(PROFESSOR_NAME) >= 3
+;
 
 
 -- 5. 학번이 A517178 인 한아름 학생의 학점 총 평점을 구하는 sql 문을 작성하시오.
@@ -83,7 +108,15 @@ HAVING
     3.6
     -----
 */
-
+SELECT * FROM tb_grade;
+SELECT
+    FORMAT(AVG(POINT),1)
+FROM
+    tb_grade
+WHERE
+    STUDENT_NO = 'A517178'
+;
+    
 
     
 -- 6. 지도 교수를 배정받지 못한 학생의 수는 몇 명 정도 되는지 알아내는 sql 문을 작성하시오.
@@ -93,7 +126,13 @@ HAVING
     9
     ---------
 */
-
+SELECT
+    COUNT(*)
+FROM
+    tb_student
+WHERE
+    COACH_PROFESSOR_NO IS NULL
+;
 
     
 -- 7. 학과별 학생수를 구하여 "학과번호", "학생수(명)" 의 형태로 헤더를 만들어 결과값이 출력되도록 하시오.
@@ -114,9 +153,27 @@ HAVING
     -----------------------
     62개의 행 조회
 */
+SELECT * FROM tb_class; -- DEPARTMENT_NO
+SELECT * FROM tb_department; -- DEPARTMENT_NO
+-- COUNT(DEPARTMENT_NO)
+SELECT * FROM tb_student; -- DEPARTMENT_NO 를 듣고있는데 휴학이아닌
 
 
+SELECT
+    d.DEPARTMENT_NO
+    , COUNT(*)
+    ,ABSENCE_YN
+FROM
+    tb_department d
+    JOIN tb_class c ON c.DEPARTMENT_NO = d.DEPARTMENT_NO
+    JOIN tb_student s ON s.DEPARTMENT_NO = c.DEPARTMENT_NO
+WHERE
+    s.ABSENCE_YN = 'Y'
+GROUP BY
+    d.DEPARTMENT_NO
+;
     
+
 -- 8. 학과 별 휴학생 수를 파악하고자 한다. 학과 번호와 휴학생 수를 표시하는 sql 문장을 작성하시오.
 /*
     학과코드명 | 휴학생 수
@@ -138,6 +195,15 @@ HAVING
     
     62개의 행 조회
 */
+SELECT
+    DEPARTMENT_NO
+                                        #    , COUNT(ABSENCE_YN) # 모두가 결석일 경우는 출력되지 않음
+    ,  COALESCE(SUM(CASE WHEN ABSENCE_YN = 'Y' THEN 1 ELSE 0 END), 0) #만약에 Y일경우 1을 더하고 아니면 0을더함 근데 NULL이면 그냥 0
+FROM 
+    tb_student
+GROUP BY
+    DEPARTMENT_NO
+;
 
 
     
@@ -158,7 +224,19 @@ HAVING
     
     20개의 행 조회
 */
-
+SELECT                                  # 4
+    STUDENT_NAME
+    , COUNT(*) "동명인 수"
+FROM                                    # 1
+    tb_student
+GROUP BY                                # 2
+    STUDENT_NAME
+HAVING                                  # 3
+    COUNT(*) >= 2 # HAVING은 별칭에서 안됨
+ORDER BY                                # 4            
+    STUDENT_NAME
+;
+# tb_student에서 GROUP by로 묶은 다음HAVING으로 거르고SELECT에서 출렧하는데 ORDER순서로
 
 
 -- 10. 학번이 A112113 인 김고운 학생의 년도 별 평점을 구하는 sql 문을 작성하시오. 
@@ -172,6 +250,24 @@ HAVING
     2021  |	3.5
     --------------------
 */
+SELECT * FROM tb_grade;
+
+SELECT                          # 4. 년도 출력, 점수의 평균값
+    LEFT(TERM_NO, 4) AS "년도"
+  , FORMAT(AVG(POINT), 1) AS "년도 별 평점" 
+FROM                            # 1. tb_grade를 사용함
+    tb_grade
+WHERE                           # 2. STUDENT_NO이 'A112113'인 행을 앚음
+    STUDENT_NO = 'A112113'
+AND STUDENT_NO = (SELECT STUDENT_NO FROM tb_student WHERE STUDENT_NAME = '김고운') -- 없어도되긴함
+GROUP BY 
+    LEFT(TERM_NO, 4) # 3. 찾은 행의 년도를 기준으로 묶어 그룹핑함
+ORDER BY
+    "년도"                  
+;
+
+
+
 
 
     
@@ -198,3 +294,17 @@ HAVING
 
     14개의 행 조회
 */
+SELECT
+    LEFT(TERM_NO, 4) AS 년도
+     ,RIGHT(TERM_NO, 2) AS 학기 # 데이터 분석 용도로 사용할 경우는 NULL출력이 더 선호됨
+--    , COALESCE(ANY_VALUE(RIGHT(TERM_NO, 2)),"") AS 학기 # 가독성이 중요할 경우 null을 다른 값으로 변경해서 출력
+    , AVG(POINT)                    # 집계함수를 사용하기 위해서는 GROUP BY를 사용해야함
+FROM 
+    tb_grade
+WHERE
+    STUDENT_NO = 'A112113' 
+GROUP BY 
+    LEFT(TERM_NO, 4), RIGHT(TERM_NO, 2)
+WITH ROLLUP
+;
+    
