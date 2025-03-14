@@ -476,7 +476,7 @@ CREATE TABLE tbl_user(
     user_pwd VARCHAR(255) NOT NULL,
     user_name VARCHAR(255) NOT NULL,
     grade_code INT,  -- 오로지 tbl_user_grade 테이블의 grade_id 컬럼값만 들어올 수 있게 허용
-    FOREIGN KEY(grade_code) REFERENCES tbl_user_grade(grade_id)    
+    FOREIGN KEY(grade_code) REFERENCES tbl_user_grade(grade_id)
 );
 
 INSERT INTO
@@ -572,7 +572,149 @@ SELECT * FROM tbl_menu_category;
 
 -- ================================================================
 
+/*
+    ## ALTER ##
+    1. 객체 구조 변경을 위한 구문
+    2. 구조에 대한 내용을 추가/변경/수정/삭제하는 걸 진행함
+    3. 테이블 변경 표현법
+        ALTER TABLE 테이블명 변경내용
+    4. 변경내용
+        1) 컬럼 추가|수정|삭제
+        2) 제약조건 추가|삭제
+        3) 테이블명 변경
+*/
+use ddldb;
+/*
+    ## 컬럼 추가 ##
+    ADD 컬럼명 데이터타입 [제약조건] [DEFAULT] [COMMENT] [AFTER 기존컬럼]
+*/
+DESC tbl_user;
+SELECT * FROM tbl_user;
 
+ALTER TABLE tbl_user ADD email VARCHAR(255); -- 데이터로는 NULL이 들어감
+ALTER TABLE tbl_user ADD phone VARCHAR(20) UNIQUE AFTER user_name;
+
+ALTER TABLE tbl_user
+    ADD age2 INT CHECK(age2 >= 19) DEFAULT 19 COMMENT '나이' AFTER phone;
+
+/*
+    ## 컬럼 변경 ##
+    MODIFY 컬럼명    자료형   [DEFAULT]    [COMMENT]    [AFTER 기존컬럼]
+                  자료형변경  기본값변경   설명변경        순서변경
+*/
+DESC tbl_user;
+SELECT * FROM tbl_user;
+
+ALTER TABLE tbl_user MODIFY phone INT;                      -- o(데이터가 없기 때문에 문자형=>숫자형), UNIQUE 유지됨
+ALTER TABLE tbl_user MODIFY user_no VARCHAR(255);           -- o(데이터가 있어도 문자형으로 허용할만한 데이터이므로), PK유지됨
+ALTER TABLE tbl_user MODIFY user_id VARCHAR(300);           -- o, NOT NULL 해제됨
+ALTER TABLE tbl_user MODIFY user_id VARCHAR(300) NOT NULL;  -- o, NOT NULL 써야만 유지됨
+ALTER TABLE tbl_user MODIFY user_id VARCHAR(5);             -- x(기존 데이터들이 허용할만한 범위가 아니라)
+
+ALTER TABLE tbl_user
+--    MODIFY user_id AFTER user_pwd;    -- 타입 미작성시 문법 오류
+    MODIFY user_id VARCHAR(50) NOT NULL AFTER user_pwd;
+
+ALTER TABLE tbl_user
+    MODIFY phone VARCHAR(255) DEFAULT '010-',
+    MODIFY email VARCHAR(255) COMMENT '이메일';
+
+DESC tbl_user;
+
+/*
+    ## 컬럼명 변경 ##
+    RENAME COLUMN 기존컬럼명 TO 새컬럼명
+*/
+ALTER TABLE tbl_user
+    RENAME COLUMN user_no TO no,
+    RENAME COLUMN user_id TO id,
+    RENAME COLUMN user_pwd TO pwd;
+    
+/*
+    ## 컬럼 삭제 ##
+    DROP COLUMN 컬럼명
+*/    
+ALTER TABLE tbl_user
+    DROP COLUMN phone,
+    DROP COLUMN email;
+    
+ALTER TABLE tbl_like
+    DROP COLUMN user_no,
+    DROP COLUMN pro_id,
+    DROP COLUMN like_date; -- 테이블의 모든 칼럼을 지울 순 없음
+    
+/*
+    ## 제약조건 추가 ##
+    ADD [CONSTRAINT 제약조건명] 제약조건(컬럼명)
+    MODIFY 컬럼명 자료형 NOT NULL (NOT NULL 제약조건 부여)
+*/
+SELECT * FROM information_schema.TABLE_CONSTRAINTS WHERE table_name = 'tbl_user';    
+DESC tbl_user;   
+    
+ALTER TABLE tbl_user
+    ADD PRIMARY KEY(no),
+    ADD CONSTRAINT user_id_uq UNIQUE(id),
+    ADD CONSTRAINT user_name_chk CHECK( CHAR_LENGTH(user_name) >= 2 ),
+    ADD CONSTRAINT user_grade_fk FOREIGN KEY(grade_code) REFERENCES tbl_user_grade(grade_id);
+    
+DESC tbl_user;
+
+ALTER TABLE tbl_user
+    MODIFY id VARCHAR(50) NOT NULL,
+    MODIFY pwd VARCHAR(255) NOT NULL;
+    
+/*
+    ## 제약조건 삭제 ##
+     DROP CONSTRAINT 제약조건명
+     DROP PRIMARY KEY (PK 제약조건 삭제)
+     MODIFY 컬럼명 자료형 NULL (NOT NULL 삭제)
+*/
+ALTER TABLE tbl_user
+    DROP PRIMARY KEY,
+    DROP CONSTRAINT user_id_uq,
+    DROP CONSTRAINT user_name_chk,
+    MODIFY id VARCHAR(255) NULL;
+
+/*
+    ## 테이블명 변경 ##
+    RENAME TO 새테이블명
+*/
+ALTER TABLE tbl_user RENAME TO user_tbl; -- RENAME TABLE tbl_user TO user_tbl;
+
+-- ============================================================================
+
+/*
+    ## DROP ##
+    1. 객체를 삭제하기 위한 구문
+    2. 표현법
+        DROP TABLE [IF EXISTS] 테이블명[, 테이블명, ..]
+*/
+DROP TABLE IF EXISTS tbl_product;
+
+DROP TABLE IF EXISTS tbl_user_grade; -- 참조되는 부모테이블같은 경우 삭제 제한됨 (자식 테이블 삭제 선행)
+
+
+-- 외래키 제약조건을 잠시 비활성화 또는 삭제한 후 테이블 삭제하면 가능
+SET FOREIGN_KEY_CHECKS = 0;
+
+SET FOREIGN_KEY_CHECKS = 1;
+
+/*
+    ## TRUNCATE ##
+    테이블 내의 데이터만 삭제하는 구문
+    즉, 테이블의 구조는 남기고 모든 행만 삭제하는 명령어
+    
+    * DELETE VS TRUNCATE
+    - DELETE는 조건제시 가능     => 일부행만 삭제도 가능
+    - TRUNCATE는 조건제시 불가능 => 전체행만 삭제 가능
+    - DELETE는 삭제시 내부적으로 로그를 남기므로 ROLLBACK이 가능하나 속도가 느림
+    - TRUNCATE는 삭제시 내부적으로 로그를 남기지 않아 속도는 빠르나 ROLLBACK이 안됨
+*/
+TRUNCATE TABLE user_tbl;
+
+SELECT * FROM user_tbl;
+
+ROLLBACK;
 
 
 
