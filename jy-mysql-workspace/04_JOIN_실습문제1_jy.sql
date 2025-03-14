@@ -23,7 +23,11 @@ FROM
     employee
 WHERE
     RIGHT(phone, 1) = 2
-    -- 리밋 3
+
+ORDER BY
+    hire_date DESC
+ LIMIT
+     0, 3;
 
 
 -- 2. 재직 중인 ‘대리’들의 직원명, 직급명, 급여, 사원번호, 이메일, 전화번호, 입사일을 출력하세요.
@@ -39,8 +43,22 @@ WHERE
     전형돈     대리      2000000     830807-1121321  jun_hd@ohgiraffers.com    2012-12-12 00:00:00
 
 */
-
-
+SELECT * FROM empdb.employee;
+SELECT * FROM empdb.job;
+SELECT
+    emp_name AS '사원명'
+  , job_name AS '직급명'
+  , salary AS '급여'
+  , emp_no AS '사원번호'
+  , email AS '이메일'
+  , hire_date AS '입사일'
+FROM
+    employee e
+        JOIN job j ON j.job_code = e.job_code
+WHERE
+    job_name = '대리'
+ORDER BY
+    salary DESC;
     
 -- 3. 재직 중인 직원들을 대상으로 부서별 인원, 급여 합계, 급여 평균을 출력하고
 --    마지막에는 전체 인원과 전체 직원의 급여 합계 및 평균이 출력되도록 하세요.
@@ -59,8 +77,21 @@ WHERE
                     21       66930000            3187142.8571428573
 
 */
-
-
+SELECT * FROM empdb.employee;
+SELECT * FROM empdb.department;
+SELECT
+    dept_title AS '부서명'
+  , COUNT(*) AS '인원'
+  , SUM(salary) AS '급여합계'
+  , AVG(salary) AS '급여평균'
+FROM
+    employee e
+        JOIN department ON dept_id = dept_code
+WHERE
+    quit_yn = 'n'
+GROUP BY
+    dept_title
+with ROLLUP
 
 
 -- 4. 전체 직원의 사원명, 주민등록번호, 전화번호, 부서명, 직급명을 출력하세요.
@@ -80,7 +111,8 @@ WHERE
     ...
     총 row 수는 24
 */
-
+SELECT
+    
 
 
 
