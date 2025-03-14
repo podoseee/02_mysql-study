@@ -46,6 +46,8 @@ GRANT ALL PRIVILEGES ON menudb.* TO 'jy'@'%';
 
 SHOW GRANTS FOR 'jy'@'%'; -- 계정에 부여된 권한 확인
  
- 
+ -- DDL 수업용 database 만들기
+CREATE DATABASE ddldb;
+GRANT ALL PRIVILEGES ON ddldb.* TO 'jy'@'%';
 
 

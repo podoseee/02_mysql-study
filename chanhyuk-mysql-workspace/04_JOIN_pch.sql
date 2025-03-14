@@ -66,6 +66,59 @@ WHERE
 
 
 
+/*
+    ## 외부 조인 (Outer Join) ##
+    좌측/우측 테이블을 기준으로 조인시키는 방법
+    기준이 되는 테이블에는 누락되는 행 없이 조회됨
+    즉, Inner Join에서 특정 테이블에 누락된 행을 같이 조회시키고자 할 때 사용
+*/
+
+-- Inner Join
+SELECT
+    menu_name
+    ,category_name
+FROM
+    tbl_menu
+        RIGHT JOIN tbl_category USING(category_code);
+
+
+SELECT
+    menu_name
+    ,category_name
+from
+    tbl_menu
+    CROSS JOIN tbl_category;
+    
+    
+/*
+    ## 자가 조인 (SELF JOIN) ##
+*/
+
+use empdb;
+-- 실습. 사번, 사원명, 근무지역명
+SELECT
+    emp_id
+,   emp_name
+,   local_name
+FROM
+    employee
+    JOIN department ON dept_id = dept_code
+    JOIN location ON local_code = location_id;
+
+-- 사번, 사원명, 부서명, 근무지역명,  근무국가명, 직급명 조회
+select * from employee;
+select * from department;
+select * from job;
+select * from location;
+select * from nation;
+select emp_id, emp_name, dept_title, local_name, national_name, job_name 
+from
+    employee e
+    LEFT join department d on e.dept_code = d.dept_ID
+    LEFT join location l on l.local_code = d.location_id
+    LEFT join nation n on n.national_code = l.national_code
+    LEFT JOIN job j on j.job_code = e.job_code;
+
 
 
 

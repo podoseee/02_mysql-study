@@ -1,3 +1,4 @@
+
 /* ## SELECT(GROUP BY, HAVING) 실습문제 - empdb ## */
 use empdb;
 
@@ -13,17 +14,16 @@ use empdb;
         J6           6              2624373
         J7           4              2017500
 */
+SELECT * FROM empdb.employee;
 SELECT
     job_code AS '직급코드'
-  , COUNT(emp_id) AS '직급별 사원수'
-  , CAST(AVG(salary) AS SIGNED INTEGER) AS '평균급여'
+  , COUNT(job_code) AS '직급별 사원수'
+  , FLOOR(AVG(salary)) AS '평균급여'  
 FROM
     employee
 WHERE
-    job_code <> 'J1'
+    job_code != 'j1'
 GROUP BY
-    job_code
-ORDER BY
     job_code;
 
 -- 2. EMPLOYEE테이블에서 직급이 J1을 제외하고, 입사년도별 인원수를 조회해서, 입사년 기준으로 오름차순 정렬하세요.
@@ -41,27 +41,47 @@ ORDER BY
     ...
     총 출력row는 17
 */
+SELECT * FROM empdb.employee;
 SELECT
-    LEFT(hire_date, 4) AS '입사년'
-  , COUNT(emp_id) AS '인원수'
+    YEAR(hire_date) AS '입사년'
+  , COUNT(job_code) AS '인원수'
 FROM
     employee
 WHERE
-    job_code <> 'J1'
+    job_code != 'j1'
 GROUP BY
-    hire_date
+    YEAR(hire_date)
 ORDER BY
-    hire_date;
+    입사년;
 
 
 -- 3. 성별 급여의 평균(정수처리), 급여의 합계, 인원수를 조회한 뒤 인원수로 내림차순을 정렬 하시오.
 /*
     ------------------- 출력 예시 -------------------
-    성별     평균          합계           인원수
+    셩별     평균          합계           인원수
     -------------------------------------------------
     남       3,317,333     49,760,000       15
     여       2,757,360     24,816,240       9
 */
+SELECT * FROM empdb.employee;
+-- 남녀 나누고
+-- 그룹으로 묶고
+-- 케이스 안에 섭스트링/엘스 ?
+SELECT
+    CASE
+        WHEN SUBSTRING(emp_no, 8,1) IN ('1', '3') THEN '남'
+        WHEN SUBSTRING(emp_no, 8,1) IN ('2', '4') THEN '여'
+    END AS '성별'
+  , ROUND(AVG(salary))AS '평균'
+  , SUM(salary)AS '합계'
+  , COUNT(*) AS '인원수'
+FROM
+    employee
+GROUP BY
+    성별
+ORDER BY
+    COUNT(*) DESC;
+
 
 
 -- 4. 직급별 인원수가 3명이상인 직급과 총원을 조회
@@ -76,12 +96,13 @@ ORDER BY
     J6              6
     J7              4
 */
+SELECT * FROM empdb.employee;
 SELECT
-    job_code AS '직급'
-  , COUNT(emp_id) AS '인원수'
+    job_code AS '직급코드'
+  , COUNT(job_code) AS '인원수'
 FROM
     employee
 GROUP BY
     job_code
 HAVING
-    COUNT(emp_id) >= 3;
+    COUNT(job_code) >=3;
