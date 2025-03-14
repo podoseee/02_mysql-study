@@ -328,6 +328,252 @@ SELECT * FROM tbl_user;
 
 COMMIT;
 
+/*
+    ## PRIMARY KEY 제약조건 ##
+    각 행을 식별하기 위한 값을 보관할 컬럼에 부여하는 제약조건
+    테이블에 대한 식별자 역할을 수행함
+    NOT NULL + UNIQUE 를 의미
+    한 테이블당 한 개만 설정 가능
+    
+    ex) 회원번호, 학번, 사번, 부서코드, 예약번호, 주문번호, ..
+*/
+DROP TABLE IF EXISTS tbl_user;
+CREATE TABLE IF NOT EXISTS tbl_user(
+    user_no INT, -- PRIMARY KEY,          -- 컬럼레벨방식
+    user_id VARCHAR(255) NOT NULL UNIQUE,
+    user_pwd VARCHAR(255) NOT NULL,
+    user_name VARCHAR(255) NOT NULL,
+    gender CHAR(3) CHECK(gender IN('남', '여')),
+    age INT,
+    PRIMARY KEY(user_no),                 -- 테이블레벨방식
+    CHECK(age >= 19)
+);
+
+SHOW FULL COLUMNS FROM tbl_user;
+SELECT * FROM information_schema.TABLE_CONSTRAINTS WHERE table_name = 'tbl_user';
+
+INSERT INTO
+    tbl_user
+VALUES
+    (1, 'user01', 'pass01', '이서연', '여', 23),
+    (2, 'user02', 'pass02', '이태용', '남', 31);
+
+SELECT * FROM tbl_user;
+
+INSERT INTO
+    tbl_user
+VALUES
+--    (null, 'user03', 'pass03', '김재중', '남', 20);           -- NOT NULL 제약조건 위배 오류 발생
+--    (2, 'user03', 'pass03', '김재중', '남', 20);              -- UNIQUE 제약조건 위배 오류 발생
+    (3, 'user03', 'pass03', '김재중', '남', 20);
+
+-- 복합키 설정 (여러 컬럼을 묶어서 하나의 PK로 설정)
+CREATE TABLE tbl_like (
+    user_no INT,
+    pro_id INT,
+    like_date DATETIME NOT NULL DEFAULT NOW(),
+    PRIMARY KEY(user_no, pro_id)
+);
+SELECT * FROM information_schema.TABLE_CONSTRAINTS WHERE table_name = 'tbl_like';
+SHOW FULL COLUMNS FROM tbl_like;
+
+INSERT INTO
+    tbl_like(user_no, pro_id)
+VALUES
+    (1, 10),
+    (1, 20),
+    (2, 10);
+    
+SELECT * FROM tbl_like;
+
+-- INSERT INTO tbl_like(user_no, pro_id) VALUES(1, 10);
+
+/*
+    ## AUTO_INCREMENT ##
+    INSERT시 PK컬럼에 자동으로 번호를 발생시켜 저장시킬 수 있게 하는 구문
+    PK로 지정된 컬럼에만 부여가능한 옵션
+    
+    INSERT시 NULL 또는 0을 지정하면 자동으로 다음 값이 할당됨
+    INSERT시 직접 값을 제시하면 그 이후부터는 제시한 값보다 큰 숫자부터 자동 증가
+*/
+DROP TABLE tbl_user;
+CREATE TABLE IF NOT EXISTS tbl_user(
+    user_no INT AUTO_INCREMENT,
+    user_id VARCHAR(255) NOT NULL UNIQUE,
+    user_pwd VARCHAR(255) NOT NULL,
+    user_name VARCHAR(255) NOT NULL,
+    gender CHAR(3) CHECK(gender IN('남', '여')),
+    age INT,
+    PRIMARY KEY(user_no),
+    CHECK(age >= 19)
+);
+
+INSERT INTO tbl_user
+VALUES(null, 'user01', 'pass01', '이서연', null, null);
+
+SELECT * FROM tbl_user;
+
+INSERT INTO
+    tbl_user
+VALUES
+    (null, 'user02', 'pass02', '이태용', '남', null),
+    (0, 'user03', 'pass03', '김재중', null, 20);
+
+INSERT INTO
+    tbl_user(user_id, user_pwd, user_name)
+VALUES
+    ('user04', 'pass04', '조규현');
+
+ SELECT last_insert_id(); -- 마지막으로 발생된 번호 조회하는 함수
+
+INSERT INTO
+    tbl_user
+VALUES
+    (15, 'user15', 'pass15', '이순신', '남', 80); -- 15
+
+SELECT * FROM tbl_user;
+
+INSERT INTO
+    tbl_user
+VALUES
+    (null, 'user16', 'pass16', '광개토', '남', 80); -- 15부터 순차적으로(16)
+    
+ -- AUTO_INCREMENT 시작값 변경
+ALTER TABLE tbl_user AUTO_INCREMENT = 1000;   
+    
+INSERT INTO
+    tbl_user
+VALUES
+    (null, 'user17', 'pass17', '신사임당', '여', 80);
+
+
+/*
+    PRIMARY KEY (PK, 기본키)
+    FOREIGN KEY (FK, 외래키)
+    
+    ## FOREIGN KEY 제약조건 ##
+    참조(reference)된 다른 테이블에서 제공하는 값만 저장 가능한 컬럼에 부여하는 제약조건
+*/
+DROP TABLE tbl_user;
+
+-- 회원 등급 테이블
+CREATE TABLE tbl_user_grade(
+    grade_id INT PRIMARY KEY,
+    grade_name VARCHAR(255) NOT NULL
+);
+INSERT INTO
+    tbl_user_grade
+VALUES
+    (10, '일반회원'),
+    (20, '우수회원'),
+    (30, '특별회원');
+    
+SELECT * FROM tbl_user_grade;
+
+CREATE TABLE tbl_user(
+    user_no INT PRIMARY KEY AUTO_INCREMENT,
+    user_id VARCHAR(255) NOT NULL UNIQUE,
+    user_pwd VARCHAR(255) NOT NULL,
+    user_name VARCHAR(255) NOT NULL,
+    grade_code INT,  -- 오로지 tbl_user_grade 테이블의 grade_id 컬럼값만 들어올 수 있게 허용
+    FOREIGN KEY(grade_code) REFERENCES tbl_user_grade(grade_id)    
+);
+
+INSERT INTO
+    tbl_user
+VALUES
+    (null, 'user01', 'pass01', '이서연', 10),
+    (null, 'user02', 'pass02', '이태용', 20),
+    (null, 'user03', 'pass03', '김재중', null); -- FK 컬럼에 기본적으로 NULL 허용
+    
+SELECT * FROM tbl_user;
+
+INSERT INTO tbl_user VALUES(null, 'user04', 'pass04', '조규현', 30);
+
+-- tbl_user_grade (부모) 1
+-- tbl_user       (자식) N
+
+-- * 부모테이블(tbl_user_grade) 데이터 수정 및 삭제
+UPDATE tbl_user_grade -- 등급번호 10 => 100
+SET grade_id = 100
+WHERE grade_id = 10; -- 10(부모데이터)를 자식 레코드에서 사용하고 있기 때문에 수정불가
+
+DELETE
+FROM tbl_user_grade
+WHERE grade_id = 20; -- 20(부모데이터)를 자식쪽에서 사용하고 있기 때문에 삭제 불가
+
+-- 외래키 제약조건 부여시 별도의 옵션을 제시하지 않으면
+-- 해당 부모값을 참조하고 있는 자식레코드 존재시 수정 및 삭제가 불가하도록 제한 옵션이 걸려있음
+
+DROP TABLE tbl_user;
+
+CREATE TABLE tbl_user(
+    user_no INT PRIMARY KEY AUTO_INCREMENT,
+    user_id VARCHAR(255) NOT NULL UNIQUE,
+    user_pwd VARCHAR(255) NOT NULL,
+    user_name VARCHAR(255) NOT NULL,
+    grade_code INT,
+    FOREIGN KEY(grade_code)
+        REFERENCES tbl_user_grade(grade_id)
+        -- ON UPDATE SET NULL => 부모데이터 update시 해당 자식값은 NULL로 변경
+        -- ON DELETE SET NULL => 부모데이터 update시 해당 자식값은 NULL로 변경
+        ON UPDATE CASCADE --  => 부모데이터 update시 해당 자식값도 같이 update
+        ON DELETE CASCADE --  => 부모데이터 delete시 해당 자식값도 같이 delete
+);
+
+INSERT INTO
+    tbl_user
+VALUES
+    (null, 'user01', 'pass01', '이서연', 10),
+    (null, 'user02', 'pass02', '이태용', 20),
+    (null, 'user03', 'pass03', '김재중', null);
+    
+SELECT * FROM tbl_user;
+
+UPDATE tbl_user_grade
+SET grade_id = 100
+WHERE grade_id = 10;
+
+SELECT * FROM tbl_user_grade;
+
+DELETE FROM tbl_user_grade
+WHERE grade_id = 20;
+
+-- ============================================================
+-- * 테이블생성시 서브쿼리 작성 가능
+use menudb;
+
+-- 비싼 메뉴(15000원이상)들만 따로 존재하는 테이블
+CREATE TABLE tbl_expensive_menu
+AS
+SELECT menu_code, menu_name, menu_price
+FROM tbl_menu
+WHERE menu_price >= 15000;
+
+DESC tbl_expensive_menu;
+
+SELECT * FROM tbl_expensive_menu;
+
+CREATE TABLE tbl_menu_copy
+AS
+SELECT *
+FROM tbl_menu 
+WHERE 1=0; -- 데이터 없이 구조만 복사하고 싶을 때
+
+SELECT * FROM tbl_menu_copy;
+
+CREATE TABLE tbl_menu_category
+AS
+SELECT menu_name, category_name
+FROM tbl_menu
+JOIN tbl_category c ON c.category_code = m.category_code;
+
+SELECT * FROM tbl_menu_category;
+
+-- ================================================================
+
+
+
 
 
 
