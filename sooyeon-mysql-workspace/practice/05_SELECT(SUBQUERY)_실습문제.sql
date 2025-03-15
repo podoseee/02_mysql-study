@@ -27,8 +27,6 @@ FROM
 ORDER BY
     STUDENT_NAME
 ;
-
-
 -- 2. 휴학중인 학생들의 이름과 주민번호를 나이가 적은 순서로 화면에 출력하시오.
 /*
     student_name | student_ssn
@@ -374,8 +372,6 @@ WHERE
 ;
 
 
-
-
 -- 12. 2022년도에 '인간관계론' 과목을 수강한 학생을 찾아 학생이름과 수강학기를 표시하는 SQL 문장을 작성하시오
 /*
     student_name | term_no
@@ -383,8 +379,15 @@ WHERE
     최지현	     | 202201
     -------------------------
 */
-
-
+SELECT
+	(SELECT STUDENT_NAME FROM tb_student WHERE g.STUDENT_NO = STUDENT_NO)
+    , TERM_NO
+FROM
+	tb_grade g
+WHERE
+	LEFT(TERM_NO,4) = 2022
+AND g.CLASS_NO = (SELECT CLASS_NO FROM tb_class WHERE CLASS_NAME = "인간관계론")
+;
 
 
 -- 13. 예체능 계열 과목 중 과목 담당교수를 한명도 배정받지 못한 과목을 찾아 그 과목 이름과 학과 이름을 출력하는 SQL 문장을 작성하시오.
@@ -396,7 +399,7 @@ WHERE
     논문지도2	        | 도예학과
     도예기법연구	    | 도예학과
     공예창작연구	    | 디자인학과
-    기업이미지디자인연구| 디자인학과
+    기업이미지디자인연구  | 디자인학과
         ..
     사회조사분석론	    | 체육학과
     스포츠산업연구	    | 체육학과
@@ -406,10 +409,46 @@ WHERE
     
     44개의 행 조회
 */
+SELECT
+	CLASS_NAME
+    ,(SELECT DEPARTMENT_NAME FROM tb_department WHERE DEPARTMENT_NO = c.DEPARTMENT_NO) AS department_name
+FROM
+	tb_class c
+WHERE
+	c.DEPARTMENT_NO IN (SELECT DEPARTMENT_NO FROM tb_department WHERE CATEGORY = "예체능")
+AND NOT EXISTS (SELECT PROFESSOR_NO FROM tb_class_professor WHERE CLASS_NO = c.CLASS_NO)  # IS NULL하면 안됨, 결과같이 1행 이상이기 때문에
+;
 
+    
+SELECT
+	CLASS_NAME
+    ,(SELECT DEPARTMENT_NAME FROM tb_department WHERE DEPARTMENT_NO = c.DEPARTMENT_NO) AS department_name
+FROM
+	tb_class c
+     LEFT JOIN tb_class_professor cp ON cp.CLASS_NO = c.CLASS_NO # null을포함하여 조인
+WHERE
+	c.DEPARTMENT_NO IN (SELECT DEPARTMENT_NO FROM tb_department WHERE CATEGORY = "예체능")
+AND cp.PROFESSOR_NO IS NULL; # 찾아진 교수의 이름이 존재하지 않을 경우(CLASS_NO로 해도 됨)
+;
+    
+    
+    
+-- SELECT
+-- 	CLASS_NAME
+--     ,(SELECT DEPARTMENT_NAME FROM tb_department WHERE DEPARTMENT_NO = c.DEPARTMENT_NO) AS department_name
+-- FROM
+-- 	tb_class c
+-- 	JOIN tb_class_professor cp ON cp.CLASS_NO = c.CLASS_NO # left를 빼면
+-- WHERE
+-- 	c.DEPARTMENT_NO IN (SELECT DEPARTMENT_NO FROM tb_department WHERE CATEGORY = "예체능")
+-- AND cp.PROFESSOR_NO IS NULL # ISNULL인 경우가 없기 때문에 0row다.
+-- ; 
+    
+    
+    
+    
 
-
-
+    
 -- 14. 춘 기술대학교 서반아어학과 학생들의 지도교수를 게시하고자 한다. 
 --     학생이름과 지도교수 이름을 찾고 만일 지도 교수가 없는 학생일 경우 "지도교수 미지정”으로 표시하도록 하는 SQL 문을 작성하시오.
 --     단, 출력헤더는 “학생이름”, “지도교수”로 표시하며 고학번 학생이 먼저 표시되도록 한다.
@@ -435,6 +474,41 @@ WHERE
     14개의 행 조회
 */
 
+select * from tb_student;
+select * from tb_department;
+
+
+
+select
+	 STUDENT_NAME
+     ,case
+		when COACH_PROFESSOR_NO is not null then (select PROFESSOR_NAME from tb_professor where PROFESSOR_NO = COACH_PROFESSOR_NO)
+		else "지도교수 미지정"
+	end as 지도
+from
+	tb_student 
+where
+	DEPARTMENT_NO = (select DEPARTMENT_NO from tb_department where  DEPARTMENT_NAME = "서반아어학과")
+order by
+	date(ENTRANCE_DATE)
+;
+
+
+
+select
+	STUDENT_NAME
+    , case
+		when PROFESSOR_NAME is not null then PROFESSOR_NAME
+        else "지도교수 미지정"
+	end as 지도
+from
+	tb_student s
+     left join tb_professor p on PROFESSOR_NO = COACH_PROFESSOR_NO
+     join tb_department d on d.DEPARTMENT_NO = s.DEPARTMENT_NO
+where
+	DEPARTMENT_NAME = "서반아어학과"
+;
+
 
 
 
@@ -457,6 +531,21 @@ WHERE
     
     38개의 행 조회
 */
+select
+    s.STUDENT_NAME
+    ,(select DEPARTMENT_NAME from tb_department where DEPARTMENT_NO = s.DEPARTMENT_NO)
+    ,avg(g.POINT) as 평점
+from
+	tb_student s
+		join tb_grade g on g.STUDENT_NO = s.STUDENT_NO
+where
+	ABSENCE_YN = 'N'
+group by
+	s.STUDENT_NO
+having 
+	평점  >= 4
+;
+
 
 
 
@@ -474,6 +563,45 @@ WHERE
     C5009300	| 단지계획및설계스튜디오  | 3.357142
     -------------------------------------------------
 */
+select * from tb_class;
+select * from tb_grade;
+
+select
+	CLASS_NO
+    ,CLASS_NAME
+    ,(select avg(POINT)
+		from tb_grade
+        where CLASS_NO = c.CLASS_NO) # tb_grade 테이블에 해당 CLASS_NO이 전혀 존재하지 않는 경우 null이 반환된다.
+from
+	tb_class c
+where
+	(select avg(POINT)
+		from tb_grade
+        where CLASS_NO = c.CLASS_NO) is not null
+and c.DEPARTMENT_NO = (select DEPARTMENT_NO from tb_department where DEPARTMENT_NAME = "환경조경학과")
+and c.CLASS_TYPE like "전공%"
+;
+
+
+
+
+select
+	c.CLASS_NO
+    ,c.CLASS_NAME
+    ,avg(POINT)
+from
+	tb_class c
+		join tb_grade g on g.CLASS_NO = c.CLASS_NO
+where
+	c.DEPARTMENT_NO = (select DEPARTMENT_NO from tb_department where DEPARTMENT_NAME = "환경조경학과")
+and c.CLASS_TYPE like "전공%"
+group by 
+	CLASS_NO
+;
+
+
+
+
 
 
 
@@ -497,6 +625,31 @@ WHERE
     17개의 행 조회
 */
 
+select
+	STUDENT_NAME
+    ,STUDENT_ADDRESS
+from
+	tb_student
+where
+	DEPARTMENT_NO = (select DEPARTMENT_NO from tb_department 
+								where DEPARTMENT_NO = (select DEPARTMENT_NO from tb_student where STUDENT_NAME = "최경희"))
+order by
+	STUDENT_NAME
+;
+
+
+select
+	STUDENT_NAME
+    ,STUDENT_ADDRESS
+from
+	tb_student s
+		join tb_department d on  d.DEPARTMENT_NO = s.DEPARTMENT_NO
+where
+	s.DEPARTMENT_NO = (select DEPARTMENT_NO from tb_student where STUDENT_NAME = "최경희" limit 1 ) # 이건 어쨋든 서브쿼리로 작성해야되네
+order by
+	STUDENT_NAME
+;
+
 
 
 
@@ -508,8 +661,24 @@ WHERE
     -------------------------
 */
 
-
-
+select
+	s.STUDENT_NO
+    ,s.STUDENT_NAME
+from
+	tb_student s
+		join tb_department d on d.DEPARTMENT_NO = s.DEPARTMENT_NO
+        join tb_grade g on g.STUDENT_NO = s.STUDENT_NO
+where
+	d.DEPARTMENT_NAME = "국어국문학과"
+group by
+	s.STUDENT_NO, s.STUDENT_NAME # 집계하려고 하지 않는 컬럼을 모두 넣어 모든 값을 출력한다.
+order by
+	avg(g.POINT) desc
+limit
+	1
+;
+    
+    
     
 -- 19. 춘 기술대학교의 "환경조경학과"가 속한 같은 계열 학과들의 학과 별 전공과목 평점을 파악하기 위한 적절한 SQL 문을 찾아내시오.
 --     단, 출력헤더는 "계열 학과명", "전공평점"으로 표시되도록 하고, 평점은 소수점 한 자리까지만 반올림하여 표시되도록 한다.
@@ -529,6 +698,56 @@ WHERE
     
     20개의 행 조회
 */
+select * from tb_grade;
+select * from tb_department;
+
+
+select
+	d.DEPARTMENT_NAME
+    ,format(avg(POINT),1)
+from
+	tb_department d
+		join tb_student s on s.DEPARTMENT_NO = d.DEPARTMENT_NO
+        join tb_grade g on g.STUDENT_NO = s.STUDENT_NO
+where
+ 	d.CATEGORY = (select CATEGORY from tb_department where DEPARTMENT_NAME = "환경조경학과")
+group by
+	d.DEPARTMENT_NAME
+order by
+	d.DEPARTMENT_NAME
+;
+
+
+
+
+
+
+
+
+# 환경경학과 카테고리의류를 having절에 넣은 이유는 학과별로 나눠진 tb_department테이블에 컬럼으로 CATcEGORY이 있으니까 분류가 가능할 줄 알았다.
+# 헌데 group by-having절로 적용하기 위해서는 그룹바이에 포감된 컬럼이나 집계함수의 결과만 사용할 수 있다\
+# 그래서 만약 카테고리 컬럼을 select에 추가한다면 having절로 자연과학 데이터를 분별해낼 수 있
+select
+	d.DEPARTMENT_NAME
+    ,avg(POINT)
+    ,d.CATEGORY
+from
+	tb_department d
+		join tb_student s on s.DEPARTMENT_NO = d.DEPARTMENT_NO
+        join tb_grade g on g.STUDENT_NO = s.STUDENT_NO
+-- where
+-- 	d.CATEGORY = (select CATEGORY from tb_department where DEPARTMENT_NAME = "환경조경학과")
+group by
+	d.DEPARTMENT_NAME
+ having
+ 	 d.CATEGORY = (select CATEGORY from tb_department where DEPARTMENT_NAME = "환경조경학과")
+;
+
+
+
+
+
+
 
 
 
