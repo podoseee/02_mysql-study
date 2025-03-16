@@ -367,19 +367,20 @@ GROUP BY
 -- 장미란  62000
 -- 추신수  86000
 
-
-
+SELECT * FROM tbl_customer;
 -- 19. 모든 구매 고객의 이름과 총구매액(price * amount)과 구매횟수를 조회하시오. 구매 이력이 없는 고객은 총구매액과 구매횟수를 0으로 조회하고, 고객번호 오름차순으로 정렬하시오.
 SELECT
     cust_name 고객명
     , IFNULL(SUM(price * amount), 0) 총구매액
     , COUNT(order_id) 구매횟수
 FROM
-    tbl_customer
-    LEFT JOIN tbl_order USING(cust_id)
+    tbl_customer c
+    LEFT JOIN tbl_order o ON o.cust_id = c.cust_id
     LEFT JOIN tbl_book USING(book_id)
 GROUP BY
-    cust_name;
+    c.cust_id
+ORDER BY
+    c.cust_id;
 -- 고객명  총구매액  구매횟수
 -- 박지성  116000     3
 -- 김연아  19000      2
@@ -390,6 +391,20 @@ GROUP BY
 
 
 -- 20. 총구매액이 2~3위인 고객의 이름와 총구매액을 조회하시오.
+ SELECT
+    cust_name 고객명
+    , SUM(price * amount) 총구매액
+FROM
+    tbl_customer
+    LEFT JOIN tbl_order USING(cust_id)
+    LEFT JOIN tbl_book USING(book_id)
+GROUP BY
+    cust_name
+ORDER BY
+    SUM(price * amount) DESC
+LIMIT
+    2 OFFSET 1;
+ -- --------------------------------------------
  WITH sum_price AS
  (SELECT
         cust_name 고객명
