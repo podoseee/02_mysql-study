@@ -261,17 +261,24 @@ SELECT
   , b.book_name AS '책이름'
   , b.price AS '책가격'
 FROM
-    tbl_order o
-    JOIN tbl_book b ON b.book_id = o.book_id
-    JOIN tbl_customer c ON c.cust_id = o.cust_id
+    tbl_book b
+LEFT JOIN tbl_order o ON b.book_id = o.book_id -- NULL 값까지 포함시켜야하기 때문에 외부조인 이용
+LEFT JOIN tbl_customer c ON o.cust_id = c.cust_id
 WHERE
-    
+    price = (SELECT MAX(price) FROM tbl_book);
 
 -- 15. '김연아'가 구매한 도서수를 조회하시오.
 -- 고객명  구매도서수
 -- 김연아  2
-
-
+SELECT
+    c.cust_name AS '고객명'
+  , SUM(o.amount) AS '구매도서수' -- 합계 SUM() 이용
+FROM
+    tbl_order o
+    JOIN tbl_book b ON b.book_id = o.book_id
+    JOIN tbl_customer c ON c.cust_id = o.cust_id
+WHERE
+    c.cust_name = '김연아';
 
 -- 16. 출판사별로 판매된 책의 개수를 조회하시오.
 -- 출판사     판매된책수
@@ -280,8 +287,16 @@ WHERE
 -- 대한미디어 1
 -- 이상미디어 2
 -- 삼성당     0
-
-
+SELECT
+    b.publisher AS '출판사'
+  , COALESCE(SUM(o.amount), 0) AS '판매된책수' -- COALESCE(값1, 값2, ..) : 나열된 값들 중 NULL이 아닌 첫 번째 값을 반환
+FROM
+    tbl_book b
+    LEFT JOIN tbl_order o ON b.book_id = o.book_id
+GROUP BY
+    b.publisher
+ORDER BY
+    판매된책수 DESC;
 
 -- 17. '박지성'이 구매한 도서를 발간한 출판사(publisher) 개수를 조회하시오.
 -- 고객명  출판사수
