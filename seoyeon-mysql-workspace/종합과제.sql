@@ -287,6 +287,8 @@ WHERE
 -- 대한미디어 1
 -- 이상미디어 2
 -- 삼성당     0
+
+/*출력 이상하게 되는 거 해결안됨..*/
 SELECT
     b.publisher AS '출판사'
   , COALESCE(SUM(o.amount), 0) AS '판매된책수' -- COALESCE(값1, 값2, ..) : 나열된 값들 중 NULL이 아닌 첫 번째 값을 반환
@@ -301,8 +303,17 @@ ORDER BY
 -- 17. '박지성'이 구매한 도서를 발간한 출판사(publisher) 개수를 조회하시오.
 -- 고객명  출판사수
 -- 박지성  3
-
-
+SELECT
+    cust_name AS '고객명'
+  , COUNT(DISTINCT b.publisher) AS '출판사수'
+FROM
+    tbl_order o
+    JOIN tbl_book b ON b.book_id = o.book_id
+    JOIN tbl_customer c ON c.cust_id = o.cust_id
+WHERE
+    c.cust_name = '박지성'
+GROUP BY
+    c.cust_name;
 
 -- 18. 모든 구매 고객의 이름과 총구매액(price * amount)을 조회하시오. 구매 이력이 있는 고객만 조회하시오.
 -- 고객명  총구매액
@@ -310,8 +321,19 @@ ORDER BY
 -- 김연아  19000
 -- 장미란  62000
 -- 추신수  86000
-
-
+SELECT
+    c.cust_name AS '고객명'
+  , SUM(b.price * o.amount) AS '총구매액'
+FROM
+    tbl_order o
+    JOIN tbl_book b ON b.book_id = o.book_id
+    JOIN tbl_customer c ON c.cust_id = o.cust_id
+GROUP BY
+    c.cust_name
+HAVING
+    SUM(b.price * o.amount) > 0
+ORDER BY
+    '총구매액' DESC;
 
 -- 19. 모든 구매 고객의 이름과 총구매액(price * amount)과 구매횟수를 조회하시오. 구매 이력이 없는 고객은 총구매액과 구매횟수를 0으로 조회하고, 고객번호 오름차순으로 정렬하시오.
 -- 고객명  총구매액  구매횟수
@@ -320,10 +342,32 @@ ORDER BY
 -- 장미란  62000      3
 -- 추신수  86000      2
 -- 박세리  0          0
-
-
+SELECT
+    c.cust_name AS '고객명'
+  , COALESCE(SUM(b.price * o.amount)) AS '총구매액' -- COALESCE는 null일 경우 0으로 대체
+  , COALESCE(COUNT(o.amount)) AS '구매횟수'
+FROM
+    tbl_customer c
+    LEFT JOIN tbl_order o ON c.cust_id = o.cust_id
+    LEFT JOIN tbl_book b ON b.book_id = o.book_id
+GROUP BY
+    c.cust_name  
+ORDER BY
+    '총구매액' DESC;
 
 -- 20. 총구매액이 2~3위인 고객의 이름와 총구매액을 조회하시오.
 -- 고객명  총구매액
 -- 추신수  86000
 -- 장미란  62000
+SELECT
+    c.cust_name AS '고객명'
+  , SUM(b.price * o.amount) AS '총구매액'
+FROM
+    tbl_customer c
+    LEFT JOIN tbl_order o ON c.cust_id = o.cust_id
+    LEFT JOIN tbl_book b ON b.book_id = o.book_id
+GROUP BY
+    c.cust_id
+ORDER BY
+    SUM(b.price * o.amount)
+DESC LIMIT 3;
