@@ -1,3 +1,4 @@
+
 /* ## SELECT(JOIN) 실습문제 - empdb ## */
 use empdb;
 
@@ -11,9 +12,9 @@ use empdb;
     211         전형돈     01044432222     2012-12-12 00:00:00     N
     206         박나라     01096935222     2008-04-02 00:00:00     N
 */
-
+SELECT * FROM empdb.employee;
 SELECT
-    emp_no AS '사원번호'
+    emp_id AS '사원번호'
   , emp_name AS '사원명'
   , phone AS '전화번호'
   , hire_date AS '입사일'
@@ -21,10 +22,13 @@ SELECT
 FROM
     employee
 WHERE
-    SUBSTRING(phone, 11) = 2
+    RIGHT(phone, 1) = 2
+
 ORDER BY
     hire_date DESC
-LIMIT 3;
+ LIMIT
+     0, 3;
+
 
 -- 2. 재직 중인 ‘대리’들의 직원명, 직급명, 급여, 사원번호, 이메일, 전화번호, 입사일을 출력하세요.
 --    단, 급여를 기준으로 내림차순 출력하세요.
@@ -39,7 +43,8 @@ LIMIT 3;
     전형돈     대리      2000000     830807-1121321  jun_hd@ohgiraffers.com    2012-12-12 00:00:00
 
 */
-
+SELECT * FROM empdb.employee;
+SELECT * FROM empdb.job;
 SELECT
     emp_name AS '사원명'
   , job_name AS '직급명'
@@ -49,11 +54,11 @@ SELECT
   , hire_date AS '입사일'
 FROM
     employee e
-    JOIN job j ON j.job_code = e.job_code
+        JOIN job j ON j.job_code = e.job_code
 WHERE
     job_name = '대리'
 ORDER BY
-    salary DESC;  
+    salary DESC;
     
 -- 3. 재직 중인 직원들을 대상으로 부서별 인원, 급여 합계, 급여 평균을 출력하고
 --    마지막에는 전체 인원과 전체 직원의 급여 합계 및 평균이 출력되도록 하세요.
@@ -72,17 +77,21 @@ ORDER BY
                     21       66930000            3187142.8571428573
 
 */
-
+SELECT * FROM empdb.employee;
+SELECT * FROM empdb.department;
 SELECT
     dept_title AS '부서명'
-  , COUNT(emp_id) AS '인원'
+  , COUNT(*) AS '인원'
   , SUM(salary) AS '급여합계'
   , AVG(salary) AS '급여평균'
 FROM
-    employee
-    JOIN department ON dept_id = dept_code
-GROUP BY dept_title
-WITH ROLLUP;
+    employee e
+        JOIN department ON dept_id = dept_code
+WHERE
+    quit_yn = 'n'
+GROUP BY
+    dept_title
+with ROLLUP
 
 
 -- 4. 전체 직원의 사원명, 주민등록번호, 전화번호, 부서명, 직급명을 출력하세요.
@@ -103,17 +112,9 @@ WITH ROLLUP;
     총 row 수는 24
 */
 SELECT
-    emp_name AS '사원명'
-  , emp_no AS '주민등록번호'
-  , phone AS '전화번호'
-  , dept_title AS '부서명'
-  , job_name AS '직급명'
-FROM
-    employee e
-    LEFT JOIN department ON dept_id = emp_id
-    JOIN job j ON j.job_code = e.job_code
-ORDER BY
-    hire_date ASC;
+    
+
+
 
 -- 5. 직급이 대리이면서 ASIA 지역에 근무하는 직원들의 사번, 사원명, 직급명, 부서명을 조회하시오.
 /*
@@ -123,19 +124,9 @@ ORDER BY
     216	    차태연	    대리	   인사관리부
     217	    전지연	    대리	   인사관리부
 */
-SELECT
-    e.emp_no AS '사번'
-  , e.emp_name AS '사원명'
-  , j.job_name AS '직급명'
-  , d.dept_title AS '부서명'
-FROM
-    employee e
-    JOIN department d ON d.dept_id = e.dept_code
-    JOIN location l ON l.local_code = d.location_id
-    JOIN job j ON j.job_code = e.job_code
-WHERE
-    j.job_name = '대리'
-  AND l.local_name LIKE '%ASIA%';
+
+
+
 
 -- 6. 70년대 생이면서 성별이 여자이고 성이 전씨인 직원들의 사원명, 주민번호, 부서명, 직급명을 조회하시오.
 /*
@@ -144,19 +135,9 @@ WHERE
     ---------------------------------------------------------
     전지연         770808-2665412       인사관리부    대리
 */
-SELECT
-    emp_name AS '사원명'
-  , emp_no AS '주민번호'
-  , dept_title AS '부서명'
-  , job_name AS '직급명'
-FROM
-    employee e
-    LEFT JOIN department ON dept_id = dept_code
-    JOIN job j ON j.job_code = e.job_code
-WHERE
-    SUBSTRING(emp_no, 1, 1) = 7
-    AND SUBSTRING(emp_no, 8, 1) IN ('2', '4')
-    AND emp_name LIKE '전%';    
+
+
+
 
 -- 7. 이름에 '형'자가 들어가는 직원들의 사번, 사원명, 직급명을 조회하시오.
 /*
@@ -165,15 +146,9 @@ WHERE
     ---------------------------------
     211        전형돈    대리
 */
-SELECT
-    emp_id AS '사번'
-  , emp_name AS '사원명'
-  , job_name AS '직급명'
-FROM
-    employee e
-    JOIN job j ON j.job_code = e.job_code
-WHERE
-    emp_name LIKE '%형%';
+
+
+
 
 -- 8. 해외영업팀에 근무하는 사원명, 직급명, 부서코드, 부서명을 조회하시오.
 /*
@@ -191,17 +166,10 @@ WHERE
     정중하     부장        D6             해외영업2부
 
 */
-SELECT
-    emp_name AS '사원명'
-  , job_name AS '직급명'
-  , dept_id AS '부서코드'
-  , dept_title AS '부서명'
-FROM
-    employee e
-    LEFT JOIN department ON dept_id = dept_code
-    JOIN job j ON j.job_code = e.job_code
-WHERE
-    dept_title LIKE '해외영업%';
+
+
+
+
 
 -- 9. 보너스를 받는 직원들의 사원명, 보너스, 부서명, 근무지역명을 조회하시오.
 /*
@@ -219,18 +187,10 @@ WHERE
     이태림         0.35                  기술지원부     EU
 
 */
-SELECT
-    emp_name AS '사원명'
-  , bonus AS '보너스포인트'
-  , dept_title AS '부서명'
-  , local_name AS '근무지역명'
-FROM
-    employee e
-    JOIN department d ON d.dept_id = e.dept_code
-    JOIN location l ON l.local_code = d.location_id
-    JOIN job j ON j.job_code = e.job_code
-WHERE
-    bonus IS NOT NULL;
+
+
+
+
 
 -- 10. 급여등급테이블 sal_grade의 등급별 최대급여(MAX_SAL)보다 많이 받는 직원들의 
 --     사원명, 직급명, 급여, 연봉을 조회하시오.
@@ -241,18 +201,9 @@ WHERE
     ----------------------------------------------------------------------
     고두밋      부사장     4480000    53760000        2999999
 */
-SELECT
-    emp_name AS '사원명'
-  , job_name AS '직급명'
-  , salary AS '급여'
-  , salary*12 AS '연봉'
-  , MAX_SAL AS '최대급여'
-FROM
-    employee e
-    JOIN sal_grade s ON s.sal_level = e.sal_level
-    JOIN job j ON j.job_code = e.job_code
-WHERE
-    salary > MAX_SAL;
+
+
+
 
 -- 11. 한국과 일본에 근무하는 직원들의 사원명, 부서명, 지역명, 국가명을 조회하시오.
 /*

@@ -35,4 +35,9 @@ CREATE DATABASE menudb;
 */
 GRANT ALL PRIVILEGES ON menudb.* TO 'TH'@'%';
 
-SHOW GRANTS FOR 'TH'@'%'; -- Check PRIVILEGES of Specific User
+SHOW GRANTS FOR 'TH'@'%'; -- Check PRIVILEGES of Specific User;
+
+
+CREATE DATABASE ddldb;
+
+GRANT ALL PRIVILEGES ON ddldb.* TO 'TH'@'%';

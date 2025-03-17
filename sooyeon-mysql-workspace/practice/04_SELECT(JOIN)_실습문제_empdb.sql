@@ -11,20 +11,23 @@ use empdb;
     211         전형돈     01044432222     2012-12-12 00:00:00     N
     206         박나라     01096935222     2008-04-02 00:00:00     N
 */
-
 SELECT
-    emp_no AS '사원번호'
-  , emp_name AS '사원명'
-  , phone AS '전화번호'
-  , hire_date AS '입사일'
-  , quit_yn AS '퇴직여부'
+    EMP_ID
+    ,EMP_NAME
+    ,PHONE
+    ,HIRE_DATE
+    ,QUIT_YN
 FROM
     employee
 WHERE
-    SUBSTRING(phone, 11) = 2
+    QUIT_YN = 'N'
+AND RIGHT(PHONE,1) = 2
 ORDER BY
-    hire_date DESC
-LIMIT 3;
+    HIRE_DATE DESC
+LIMIT
+    3
+;
+
 
 -- 2. 재직 중인 ‘대리’들의 직원명, 직급명, 급여, 사원번호, 이메일, 전화번호, 입사일을 출력하세요.
 --    단, 급여를 기준으로 내림차순 출력하세요.
@@ -39,21 +42,23 @@ LIMIT 3;
     전형돈     대리      2000000     830807-1121321  jun_hd@ohgiraffers.com    2012-12-12 00:00:00
 
 */
-
 SELECT
-    emp_name AS '사원명'
-  , job_name AS '직급명'
-  , salary AS '급여'
-  , emp_no AS '사원번호'
-  , email AS '이메일'
-  , hire_date AS '입사일'
+    EMP_NAME
+    , j.JOB_NAME
+    ,SALARY
+    ,EMP_ID
+    ,EMAIL
+    ,HIRE_DATE
 FROM
     employee e
-    JOIN job j ON j.job_code = e.job_code
+     JOIN job j ON j.JOB_CODE = e.JOB_CODE
 WHERE
-    job_name = '대리'
+    QUIT_YN = 'N'
+AND j.JOB_NAME = '대리'
 ORDER BY
-    salary DESC;  
+    SALARY DESC
+;
+
     
 -- 3. 재직 중인 직원들을 대상으로 부서별 인원, 급여 합계, 급여 평균을 출력하고
 --    마지막에는 전체 인원과 전체 직원의 급여 합계 및 평균이 출력되도록 하세요.
@@ -72,17 +77,24 @@ ORDER BY
                     21       66930000            3187142.8571428573
 
 */
-
 SELECT
-    dept_title AS '부서명'
-  , COUNT(emp_id) AS '인원'
-  , SUM(salary) AS '급여합계'
-  , AVG(salary) AS '급여평균'
+    DEPT_TITLE AS 부서명
+    ,COUNT(*) AS 인원
+    ,SUM(SALARY) AS 급여합계
+    ,AVG(SALARY) AS 급여평균
 FROM
-    employee
-    JOIN department ON dept_id = dept_code
-GROUP BY dept_title
-WITH ROLLUP;
+    department
+        join employee on DEPT_CODE = DEPT_ID
+WHERE
+    QUIT_YN = 'N'
+GROUP BY
+    DEPT_TITLE 
+WITH ROLLUP
+ORDER BY
+    ISNULL(DEPT_TITLE) # 만약 NULL이 맞을 경우는 1, 아닐 경우는 0
+    , 부서명 # 위에서 null이 아닐경우의 데이터들이 정렬됨
+    # 결과적으로 null일경우1, 아닐경우0이라 오름차순으로 정렬하면 1인 null이 맨 뒤에 배치되는 것임
+;
 
 
 -- 4. 전체 직원의 사원명, 주민등록번호, 전화번호, 부서명, 직급명을 출력하세요.
@@ -103,17 +115,21 @@ WITH ROLLUP;
     총 row 수는 24
 */
 SELECT
-    emp_name AS '사원명'
-  , emp_no AS '주민등록번호'
-  , phone AS '전화번호'
-  , dept_title AS '부서명'
-  , job_name AS '직급명'
+    EMP_NAME
+    ,EMP_NO
+    ,PHONE
+    ,DEPT_TITLE # -> department-> (DEPT_ID,DEPT_CODE) -> employee
+    ,JOB_NAME # -> job (JOB_CODE,JOB_CODE) -> employee
 FROM
     employee e
-    LEFT JOIN department ON dept_id = emp_id
-    JOIN job j ON j.job_code = e.job_code
+     LEFT JOIN department d ON d.DEPT_ID = e.DEPT_CODE #LEFT 해야 24개
+     JOIN job j ON j.JOB_CODE = e.JOB_CODE
 ORDER BY
-    hire_date ASC;
+    HIRE_DATE
+;
+;
+
+
 
 -- 5. 직급이 대리이면서 ASIA 지역에 근무하는 직원들의 사번, 사원명, 직급명, 부서명을 조회하시오.
 /*
@@ -123,19 +139,23 @@ ORDER BY
     216	    차태연	    대리	   인사관리부
     217	    전지연	    대리	   인사관리부
 */
+SELECT * FROM location;
+
 SELECT
-    e.emp_no AS '사번'
-  , e.emp_name AS '사원명'
-  , j.job_name AS '직급명'
-  , d.dept_title AS '부서명'
+    EMP_ID
+    ,EMP_NAME
+    ,JOB_NAME # -> job -> (JOB_CODE,JOB_CODE) ->employee
+    , DEPT_TITLE # -> department -> (DEPT_ID,DEPT_CODE) ->employee
 FROM
     employee e
-    JOIN department d ON d.dept_id = e.dept_code
-    JOIN location l ON l.local_code = d.location_id
-    JOIN job j ON j.job_code = e.job_code
+        JOIN job j ON j.JOB_CODE = e.JOB_CODE
+        JOIN department d on d.DEPT_ID = e.DEPT_CODE
+        JOIN location l ON l.LOCAL_CODE = d.LOCATION_ID
 WHERE
-    j.job_name = '대리'
-  AND l.local_name LIKE '%ASIA%';
+    QUIT_YN = 'N'
+AND JOB_NAME = '대리'
+AND LOCAL_NAME LIKE 'ASIA%'
+;
 
 -- 6. 70년대 생이면서 성별이 여자이고 성이 전씨인 직원들의 사원명, 주민번호, 부서명, 직급명을 조회하시오.
 /*
@@ -145,18 +165,21 @@ WHERE
     전지연         770808-2665412       인사관리부    대리
 */
 SELECT
-    emp_name AS '사원명'
-  , emp_no AS '주민번호'
-  , dept_title AS '부서명'
-  , job_name AS '직급명'
+    EMP_NAME
+    ,EMP_NO
+    ,d.DEPT_TITLE # department -> (DEPT_ID,DEPT_CODE) -> employee
+    , j.JOB_NAME # -> department -> (DEPT_ID,DEPT_CODE) ->employee
 FROM
     employee e
-    LEFT JOIN department ON dept_id = dept_code
-    JOIN job j ON j.job_code = e.job_code
+        JOIN job j ON j.JOB_CODE = e.JOB_CODE
+        JOIN department d on d.DEPT_ID = e.DEPT_CODE
 WHERE
-    SUBSTRING(emp_no, 1, 1) = 7
-    AND SUBSTRING(emp_no, 8, 1) IN ('2', '4')
-    AND emp_name LIKE '전%';    
+    LEFT(EMP_NO,2) LIKE '7%'
+AND SUBSTRING(EMP_NO,8,1) IN  ('2', '4')
+AND LEFT(EMP_NAME,1) = "전"
+;
+
+
 
 -- 7. 이름에 '형'자가 들어가는 직원들의 사번, 사원명, 직급명을 조회하시오.
 /*
@@ -166,14 +189,16 @@ WHERE
     211        전형돈    대리
 */
 SELECT
-    emp_id AS '사번'
-  , emp_name AS '사원명'
-  , job_name AS '직급명'
+    EMP_ID
+    ,EMP_NAME
+    ,JOB_NAME
 FROM
     employee e
-    JOIN job j ON j.job_code = e.job_code
+        JOIN job j ON j.JOB_CODE = e.JOB_CODE
 WHERE
-    emp_name LIKE '%형%';
+    EMP_NAME LIKE "%형%"
+;
+
 
 -- 8. 해외영업팀에 근무하는 사원명, 직급명, 부서코드, 부서명을 조회하시오.
 /*
@@ -192,16 +217,23 @@ WHERE
 
 */
 SELECT
-    emp_name AS '사원명'
-  , job_name AS '직급명'
-  , dept_id AS '부서코드'
-  , dept_title AS '부서명'
+    EMP_NAME
+    ,JOB_NAME
+    ,DEPT_CODE
+    ,DEPT_TITLE
 FROM
     employee e
-    LEFT JOIN department ON dept_id = dept_code
-    JOIN job j ON j.job_code = e.job_code
+    
+        JOIN job j ON j.JOB_CODE = e.JOB_CODE
+            
+        JOIN department d on d.DEPT_ID = e.DEPT_CODE
 WHERE
-    dept_title LIKE '해외영업%';
+    e.DEPT_CODE IN (SELECT DEPT_ID 
+                    FROM department 
+                    WHERE DEPT_TITLE LIKE "%해외영업%")
+;
+
+
 
 -- 9. 보너스를 받는 직원들의 사원명, 보너스, 부서명, 근무지역명을 조회하시오.
 /*
@@ -219,18 +251,22 @@ WHERE
     이태림         0.35                  기술지원부     EU
 
 */
+
 SELECT
-    emp_name AS '사원명'
-  , bonus AS '보너스포인트'
-  , dept_title AS '부서명'
-  , local_name AS '근무지역명'
+    EMP_NAME
+    ,BONUS
+    , DEPT_TITLE
+    ,LOCAL_NAME
 FROM
-    employee e
-    JOIN department d ON d.dept_id = e.dept_code
-    JOIN location l ON l.local_code = d.location_id
-    JOIN job j ON j.job_code = e.job_code
+    employee
+        LEFT JOIN department ON DEPT_ID = DEPT_CODE
+        LEFT JOIN location ON LOCAL_CODE = LOCATION_ID
 WHERE
-    bonus IS NOT NULL;
+    BONUS IS NOT NULL
+AND BONUS > 0
+;
+
+
 
 -- 10. 급여등급테이블 sal_grade의 등급별 최대급여(MAX_SAL)보다 많이 받는 직원들의 
 --     사원명, 직급명, 급여, 연봉을 조회하시오.
@@ -241,18 +277,20 @@ WHERE
     ----------------------------------------------------------------------
     고두밋      부사장     4480000    53760000        2999999
 */
+
 SELECT
-    emp_name AS '사원명'
-  , job_name AS '직급명'
-  , salary AS '급여'
-  , salary*12 AS '연봉'
-  , MAX_SAL AS '최대급여'
+    EMP_NAME
+    ,JOB_NAME
+    ,SALARY
+    ,(SALARY*12)
+    ,s.MAX_SAL
 FROM
     employee e
-    JOIN sal_grade s ON s.sal_level = e.sal_level
-    JOIN job j ON j.job_code = e.job_code
+        JOIN job j ON j.JOB_CODE = e.JOB_CODE
+        JOIN sal_grade s ON s.SAL_LEVEL = e.SAL_LEVEL
 WHERE
-    salary > MAX_SAL;
+    SALARY > s.MAX_SAL
+;
 
 -- 11. 한국과 일본에 근무하는 직원들의 사원명, 부서명, 지역명, 국가명을 조회하시오.
 /*
@@ -277,8 +315,19 @@ WHERE
     노옹철         총무부         ASIA1          한국
 
 */
-
-
+SELECT
+    EMP_NAME
+    ,DEPT_TITLE
+    ,LOCAL_NAME
+    ,NATIONAL_NAME
+FROM
+    employee e
+        JOIN department d ON d.DEPT_ID = e.DEPT_CODE
+        JOIN location l ON l.LOCAL_CODE = d.LOCATION_ID
+        JOIN nation n ON n.NATIONAL_CODE = l.NATIONAL_CODE
+WHERE
+    NATIONAL_NAME IN ("한국","일본")
+;
 
 
 -- 12. 같은 부서에 근무하는 직원들의 사원명, 부서명, 동료이름을 조회하시오. (self join 사용)
@@ -299,9 +348,34 @@ WHERE
     총 row 66
 */
 
+SELECT
+    e1.EMP_NAME
+    , DEPT_TITLE
+    ,e2.EMP_NAME
+FROM
+    employee e1
+    JOIN employee e2 ON e2.DEPT_CODE = e1.DEPT_CODE ## 부서가 같은 사람들
+    JOIN department ON DEPT_ID = e1.DEPT_CODE
+WHERE
+    e1.EMP_NAME <> e2.EMP_NAME
+ORDER BY
+     e1.EMP_NAME
+;
 
 
-
+-- SELECT
+--     e1.EMP_NAME
+--     , DEPT_TITLE
+--     ,(SELECT EMP_NAME FROM employee WHERE DEPT_CODE =  e1.EMP_NAME AND EMP_NAME <> e1.EMP_NAME)
+-- FROM
+--     employee e1
+--     JOIN department ON DEPT_ID = e1.DEPT_CODE
+-- ORDER BY
+--      e1.EMP_NAME
+-- ;
+--     
+    
+    
 -- 13. 보너스포인트가 없는 직원들 중에서 직급이 차장과 사원인 직원들의 사원명, 직급명, 급여를 조회하시오.
 /*
     --------------------- 출력예시 -------------
@@ -316,8 +390,17 @@ WHERE
     ...
     총 row수는 8
 */
-
-
+SELECT
+    EMP_NAME
+    ,JOB_NAME
+    ,FORMAT(SALARY,0)
+FROM
+    employee e
+        JOIN job j ON j.JOB_CODE = e.JOB_CODE
+WHERE
+    (BONUS IS NULL OR BONUS <=0)
+AND JOB_NAME IN ("차장","사원")
+;
 
 
 -- 14. 재직중인 직원과 퇴사한 직원의 수를 조회하시오. (JOIN 문제 아님)
@@ -328,15 +411,15 @@ WHERE
   재직              23
   퇴사              1
 */
-
-
-
-
-
-
-
-
-
-
-
-
+SELECT
+    CASE
+        WHEN QUIT_YN = 'N' THEN '재직'
+        WHEN QUIT_YN = 'Y' THEN '퇴직'
+        ELSE '없음'
+    END AS 재직여부
+    , COUNT(*)
+FROM
+    employee
+GROUP BY
+    재직여부
+;

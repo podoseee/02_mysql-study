@@ -60,4 +60,7 @@ GRANT ALL PRIVILEGES ON chundb.* TO 'podoseee'@'%';
 CREATE DATABASE ddldb;
 GRANT ALL PRIVILEGES ON ddldb.* TO 'podoseee'@'%';
 
+-- homework database 만들기
+CREATE DATABASE homeworkdb;
+GRANT ALL PRIVILEGES ON homeworkdb.* TO 'podoseee'@'%';
 
