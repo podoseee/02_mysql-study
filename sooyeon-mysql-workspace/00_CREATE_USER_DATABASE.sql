@@ -38,6 +38,16 @@ CREATE USER 'sotogito'@'%' IDENTIFIED BY 'sotogito';
     CREATE DATABASE 데이터베이스명;
 */
 
+
+
+
+
+
+
+
+-- FUNCTION 생성을 위해 바이너리 로깅 비활성화
+SET GLOBAL log_bin_trust_function_creators = 1;
+
 CREATE DATABASE menudb;
 
 /*
