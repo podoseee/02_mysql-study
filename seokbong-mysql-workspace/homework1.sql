@@ -306,12 +306,29 @@ GROUP BY
 -- 대한미디어 1
 -- 이상미디어 2
 -- 삼성당     0
-
-
+SELECT
+    publisher 출판사
+  , COUNT(o.book_id) 판매된책수
+FROM
+    tbl_book b
+        LEFT JOIN tbl_order o ON o.book_id  = b.book_id
+GROUP BY
+    publisher;
 
 -- 17. '박지성'이 구매한 도서를 발간한 출판사(publisher) 개수를 조회하시오.
 -- 고객명  출판사수
 -- 박지성  3
+SELECT
+    cust_name 고객명
+  , COUNT(*) 출판사수
+FROM
+    tbl_customer c
+        JOIN tbl_order o ON o.cust_id = c.cust_id
+        JOIN tbl_book b ON b. book_id = o.book_id
+WHERE
+    cust_name = '박지성'
+GROUP BY 
+    cust_name;
 
 
 
@@ -321,8 +338,15 @@ GROUP BY
 -- 김연아  19000
 -- 장미란  62000
 -- 추신수  86000
-
-
+SELECT
+    cust_name 고객명
+  , SUM(price * amount) 총구매액
+FROM 
+    tbl_customer c
+        JOIN tbl_order o ON o.cust_id = c.cust_id
+        JOIN tbl_book b ON b.book_id = o.book_id
+GROUP BY
+    cust_name;
 
 -- 19. 모든 구매 고객의 이름과 총구매액(price * amount)과 구매횟수를 조회하시오. 구매 이력이 없는 고객은 총구매액과 구매횟수를 0으로 조회하고, 고객번호 오름차순으로 정렬하시오.
 -- 고객명  총구매액  구매횟수
@@ -331,6 +355,16 @@ GROUP BY
 -- 장미란  62000      3
 -- 추신수  86000      2
 -- 박세리  0          0
+SELECT
+    cust_name 고객명
+  , IFNULL(SUM(price * amount),0) 총구매액
+  , COUNT(amount) 구매횟수
+FROM 
+    tbl_customer c
+        LEFT JOIN tbl_order o ON o.cust_id = c.cust_id
+        LEFT JOIN tbl_book b ON b.book_id = o.book_id
+GROUP BY
+    cust_name;
 
 
 
@@ -338,3 +372,16 @@ GROUP BY
 -- 고객명  총구매액
 -- 추신수  86000
 -- 장미란  62000
+SELECT
+    cust_name 고객명
+  , SUM(price * amount) 총구매액
+FROM 
+    tbl_customer c
+        JOIN tbl_order o ON o.cust_id = c.cust_id
+        JOIN tbl_book b ON b.book_id = o.book_id
+GROUP BY
+    cust_name
+ORDER BY
+    총구매액 DESC
+LIMIT
+    1,2;
