@@ -64,3 +64,5 @@ GRANT ALL PRIVILEGES ON ddldb.* TO 'podoseee'@'%';
 CREATE DATABASE homeworkdb;
 GRANT ALL PRIVILEGES ON homeworkdb.* TO 'podoseee'@'%';
 
+-- FUNCTION 생성을 위해 바이너리 로깅 비활성화
+SET GLOBAL log_bin_trust_function_creators = 1;
