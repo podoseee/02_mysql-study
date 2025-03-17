@@ -45,3 +45,25 @@ GRANT ALL PRIVIELEGS ON 권한 TO '사용자명 @ 호스트);
 GRANT ALL PRIVILEGES ON menudb.* TO 'jjanggu'@'%';
 
 SHOW GRANTS FOR 'jjanggu'@'%';
+
+
+-- 실습용 database 만들기
+
+-- 사내 시스템 (empdb)
+CREATE DATABASE empdb;
+
+-- 대학교 시스템 (chundb)
+CREATE DATABASE chundb;
+
+GRANT ALL PRIVILEGES ON empdb.*TO 'jjanggu'@'%';
+GRANT ALL PRIVILEGES ON chundb.*TO 'jjanggu'@'%';
+
+-- DDL 수업용 database 만들기
+CREATE DATABASE ddldb;
+GRANT ALL PRIVILEGES ON ddldb.*TO 'jjanggu'@'%';
+
+-- homework용 database 만들기
+CREATE DATABASE homeworkdb;
+GRANT ALL PRIVILEGES ON homeworkdb.*TO 'jjanggu'@'%';
+
+
