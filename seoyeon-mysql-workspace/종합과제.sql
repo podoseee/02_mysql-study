@@ -145,13 +145,22 @@ SELECT * FROM tbl_order;
 -- 9        올림픽 이야기  삼성당     7500
 -- 10       올림픽 챔피언  나이스북   13000
 
-
+SELECT
+    *
+FROM
+    tbl_book
+WHERE
+    book_name LIKE '%올림픽%';
 
 -- 8. 가격이 가장 비싼 책을 조회하시오.
 -- book_id  book_name    publisher    price
 -- 4        골프 바이블  대한미디어   35000
-
-
+SELECT
+    * 
+FROM
+    tbl_book
+WHERE
+    price = (SELECT MAX(price) FROM tbl_book);
 
 -- 9. '2020-07-05'부터 '2020-07-09' 사이에 주문된 도서 정보를 조회하시오.
 -- 주문번호 책번호 책이름
@@ -160,14 +169,26 @@ SELECT * FROM tbl_order;
 -- 7        8      야구를 부탁해
 -- 8        10     올림픽 챔피언
 -- 9        10     올림픽 챔피언
- 
-
+SELECT
+    o.order_id AS '주문번호'
+  , o.book_id AS '책번호'
+  , b.book_name AS '책이름'
+FROM
+    tbl_order o
+    JOIN tbl_book b ON b.book_id = o.book_id
+WHERE
+    ordered_at BETWEEN '2020-07-05' AND '2020-07-09';
 
 -- 10. 주문한 이력이 없는 고객의 이름을 조회하시오.
 -- 고객명
 -- 박세리
- 
-
+SELECT
+    c.cust_name AS '고객명'
+FROM
+    tbl_customer c
+LEFT JOIN tbl_order o ON o.cust_id = c.cust_id
+WHERE
+    o.cust_id IS NULL;
 
 -- 11. '2020-07-04'부터 '2020-07-07' 사이에 주문 받은 도서를 제외하고 나머지 모든 주문 정보를 조회하시오.
 -- 구매번호  구매자  책이름           총구매액 주문일자
@@ -177,28 +198,74 @@ SELECT * FROM tbl_order;
 -- 8         장미란  올림픽 챔피언    26000    2020-07-08
 -- 9         김연아  올림픽 챔피언    13000    2020-07-09
 -- 10        장미란  역도 단계별 기술 24000    2020-07-10
-
-
+SELECT
+    o.order_id AS '구매번호'
+  , c.cust_name AS '구매자'
+  , b.book_name AS '책이름'
+  , b.price AS '총구매액'
+  , o.ordered_at AS '주문일자'
+FROM
+    tbl_order o
+    JOIN tbl_book b ON b.book_id = o.book_id
+    JOIN tbl_customer c ON c.cust_id = o.cust_id
+WHERE
+    ordered_at NOT BETWEEN '2020-07-05' AND '2020-07-09';
 
 -- 12. 가장 최근에 구매한 고객의 이름, 책이름, 주문일자를 조회하시오.
 -- 고객명  책이름            주문일자
 -- 장미란  역도 단계별 기술  2020-07-10
-
-
+SELECT
+    cust_name AS '고객명'
+  , book_name AS '책이름'
+  , ordered_at AS '주문일자'
+FROM
+    tbl_order o
+    JOIN tbl_book b ON b.book_id = o.book_id
+    JOIN tbl_customer c ON c.cust_id = o.cust_id
+ORDER BY
+    ordered_at
+DESC LIMIT 1;
 
 -- 13. 주문된 적이 없는 책의 주문번호, 책번호, 책이름을 조회하시오.
 -- 주문번호 책번호 책이름
 -- NULL     4      골프 바이블
 -- NULL     9      올림픽 이야기
 
+/* 처음 쓴 오류코드
+SELECT
+    o.order_id AS '주문번호'
+  , o.book_id AS '책번호'
+  , b.book_name AS '책이름'
+FROM
+    tbl_order o
+    JOIN tbl_book b ON b.book_id = o.book_id
+WHERE
+    b.book_id = (SELECT book_id FROM tbl_order) IS NULL;
+*/
 
+SELECT
+    NULL AS '주문번호'
+  , b.book_id AS '책번호'
+  , b.book_name AS '책이름'
+FROM
+    tbl_book b
+WHERE
+    NOT EXISTS (SELECT * FROM tbl_order o WHERE o.book_id = b.book_id);
 
 -- 14. 모든 서적 중에서 가장 비싼 서적을 구매한 고객이름, 책이름, 가격을 조회하시오.
 -- 가장 비싼 서적을 구매한 고객이 없다면 고객 이름은 NULL로 처리하시오.
 -- 고객명  책이름       책가격
 -- NULL    골프 바이블  35000
-
-
+SELECT
+    c.cust_name AS '고객명'
+  , b.book_name AS '책이름'
+  , b.price AS '책가격'
+FROM
+    tbl_order o
+    JOIN tbl_book b ON b.book_id = o.book_id
+    JOIN tbl_customer c ON c.cust_id = o.cust_id
+WHERE
+    
 
 -- 15. '김연아'가 구매한 도서수를 조회하시오.
 -- 고객명  구매도서수
