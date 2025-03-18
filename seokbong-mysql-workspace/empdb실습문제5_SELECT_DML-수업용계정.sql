@@ -167,41 +167,177 @@ GROUP BY
     prod_category;
 
 -- 9. 아이디별 구매횟수를 조회하시오.
+SELECT
+    user_id
+  , COUNT(prod_code)
+FROM 
+    tbl_user u
+        LEFT JOIN tbl_buy b ON b.user_no = u.user_no
+GROUP BY
+    user_id;
+    
 
 
 -- 10. 아이디별 구매횟수를 조회하시오. 
 --    구매 이력이 없는 경우 구매횟수는 0으로 조회하고 아이디의 오름차순으로 조회하시오.
+SELECT
+    user_id
+  , COUNT(prod_code)
+FROM 
+    tbl_user u
+        LEFT JOIN tbl_buy b ON b.user_no = u.user_no
+GROUP BY
+    user_id
+ORDER BY
+    user_id;
 
 
 -- 11. 모든 제품의 제품명과 판매횟수를 조회하시오. 
 --     판매 이력이 없는 제품은 0으로 조회하시오.
-
+SELECT
+    prod_name 제품명
+  , COUNT(b.prod_code) 판매횟수
+FROM
+    tbl_product p
+        LEFT JOIN tbl_buy b ON b.prod_code = p.prod_code
+GROUP BY
+    prod_name;
 
 -- 12. 카테고리가 '전자'인 제품을 구매한 고객의 구매내역을 조회하시오.
+SELECT
+    user_name 고객명
+  , prod_name 제품명
+  , buy_amount 구매양
+  , buy_amount * prod_price 구매액
+FROM
+    tbl_user u
+        JOIN tbl_buy b ON b.user_no = u.user_no
+        JOIN tbl_product p ON p.prod_code = b.prod_code
+WHERE
+    prod_category = '전자';
+    
 
 
 -- 13. 제품을 구매한 이력이 있는 고객의 아이디, 고객명, 구매횟수, 총구매액을 조회하시오.
+SELECT
+    user_id 아이디
+  , user_name 고객명
+, COUNT(buy_no) 구매횟수
+  , SUM(buy_amount * prod_price) 총구매액
+FROM
+    tbl_user u
+        JOIN tbl_buy b ON b.user_no = u.user_no
+        JOIN tbl_product p On p.prod_code = b.prod_code
+GROUP BY
+    user_id;
+    
+    
+
 
 
 -- 14. 구매횟수가 2회 이상인 고객명과 구매횟수를 조회하시오.
 
+SELECT
+    user_id 아이디
+  , user_name 고객명
+, COUNT(buy_no) 구매횟수
+  , SUM(buy_amount * prod_price) 총구매액
+FROM
+    tbl_user u
+        JOIN tbl_buy b ON b.user_no = u.user_no
+        JOIN tbl_product p On p.prod_code = b.prod_code
+GROUP BY
+    user_id
+HAVING
+    구매횟수 >= 2;
+
 
 -- 15. 어떤 고객이 어떤 제품을 구매했는지 조회하시오. 
 --     구매 이력이 없는 고객도 조회하고 아이디로 오름차순 정렬하시오.
+SELECT
+    user_name 고객명
+  , IFNULL(prod_name, '구매안함') 제품명
+FROM    
+    tbl_user u
+        LEFT JOIN tbl_buy b ON b.user_no = u.user_no
+        LEFT JOIN tbl_product p ON p.prod_code = b.prod_code
+ORDER BY
+    user_id;
+    
+
 
 
 -- 16. 제품 테이블에서 제품명이 '책'인 제품의 카테고리를 '서적'으로 수정하시오.
--- replace
+
+UPDATE 
+    tbl_product
+SET
+    prod_category = '서적'
+WHERE
+    prod_name = '책';
+COMMIT;
+    
+SELECT * FROM tbl_product;
 
 -- 17. 연락처1이 '011'인 사용자의 연락처1을 모두 '010'으로 수정하시오.
+UPDATE
+    tbl_user
+SET
+    user_mobile1 = '010'
+WHERE
+    user_mobile1 = '011';
+COMMIT;
+
+SELECT * FROM tbl_user;
 
 
 -- 18. 구매번호가 가장 큰 구매내역을 삭제하시오.
-
+SELECT * FROM tbl_buy;
+DELETE 
+FROM
+    tbl_buy
+WHERE
+    buy_no = (SELECT buy_no
+                FROM (
+                      SELECT buy_no
+                        FROM tbl_buy
+                    ORDER BY buy_no DESC
+                       LIMIT 1
+                     ) max_no
+              );
+              
+COMMIT;
+    
 
 -- 19. 제품코드가 1인 제품을 삭제하시오. 
 --     삭제 이후 제품번호가 1인 제품의 구매내역이 어떻게 변하는지 확인해볼것
+SELECT * FROM tbl_product;
+DELETE
+FROM
+    tbl_product
+WHERE
+    prod_code = 1;
+SELECT * FROM tbl_buy;
+COMMIT;
+
 
 
 -- 20. 사용자번호가 5인 사용자를 삭제하시오. 
 --     사용자번호가 5인 사용자의 구매 내역을 먼저 삭제한 뒤 진행하시오.
+DELETE
+FROM
+    tbl_buy
+WHERE
+    user_no = 5;
+    
+DELETE
+FROM
+    tbl_user
+WHERE
+    user_no = 5;
+    
+COMMIT;
+    
+SELECT * FROM tbl_user;
+
+
