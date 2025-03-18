@@ -57,7 +57,7 @@ ORDER BY
     
     91개의 행 조회
 */
-
+use chundb;
 SELECT * FROM tb_student;
 SELECT
     STUDENT_NAME

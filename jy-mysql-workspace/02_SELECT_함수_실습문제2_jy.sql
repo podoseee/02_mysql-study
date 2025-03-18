@@ -174,12 +174,19 @@ GROUP BY
 SELECT * FROM chundb.tb_student;
 SELECT * FROM chundb.tb_department;
 SELECT
-    department_no AS '학과코드명'
-  , COUNT(*) AS '휴학생 수'
+    d.department_no AS '학과코드명'
+  , COUNT(s.student_no) AS '휴학생 수'
 FROM
-    tb_student
+    tb_department d
+LEFT JOIN
+    tb_student s ON d.department_no = s.department_no 
+AND s.absence_yn = 'Y'
 GROUP BY
-    department_no;
+    d.department_no
+ORDER BY
+    d.department_no;
+
+    
     
 -- 9. 춘 대학교에 다니는 동명이인(同名異人) 학생들의 이름을 찾고자 한다. 어떤 sql 문장을 사용하면 가능하겠는가?
 /*
@@ -198,8 +205,19 @@ GROUP BY
     
     20개의 행 조회
 */
-
-
+SELECT * FROM chundb.tb_student;
+SELECT * FROM chundb.tb_grade;
+SELECT
+    student_name AS '동일이름'
+  , count(student_no) AS '동명인 수'
+FROM
+    tb_student
+GROUP BY
+    student_name
+HAVING
+    COUNT(*) > 1
+ORDER BY
+    student_name;
 
 -- 10. 학번이 A112113 인 김고운 학생의 년도 별 평점을 구하는 sql 문을 작성하시오. 
 --    단, 이때 출력 화면의 헤더는 "년도", "년도 별 평점" 이라고 찍히게 하고, 점수는 반올림하여 소수점 이하 한자리까지만 표시한다.

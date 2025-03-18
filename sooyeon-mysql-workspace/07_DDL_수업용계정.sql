@@ -372,4 +372,444 @@ CREATE TABLE IF NOT EXISTS tbl_user(
     ,/*NSTRAINT user_gender_chk*/ CHECK(age >= 19)
 );
 
+COMMIT;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/*
+    ## PRIMARY KEY  제약조건
+    각 행을 식별하기 위한 값을 보관하는 컬럼에 부여하는 제약조건
+    테이블에 대한 식별자 역할을 수행함
+    NOT NULL + UNIQUE를 의미
+    한 테이블당 한개만 설정가능
+    
+    EX) 회원번호, 학번, 사번, 부서코드, 예약번호, 주문번호, ...
+*/
+DROP TABLE IF EXISTS tbl_user;
+CREATE TABLE IF NOT EXISTS tbl_user(
+    user_no INT, -- PRIMARY KEY, -- 컬럼레벨방식
+    user_id VARCHAR(225) NOT NULL UNIQUE, #user_no가 PRIMARY KEY가 되지 못할경우 user_id가 됨 - 대체키
+    user_pwd VARCHAR(225) NOT NULL,
+    user_name VARCHAR(225) NOT NULL,
+    gender CHAR(3) CHECK(gender IN ('남','여')),
+    age INT,
+
+    -- 테이블 레벨 방식
+    PRIMARY KEY(user_no),
+    CHECK(age >= 19)
+);
+SHOW FULL COLUMNS FROM tbl_user;
+SELECT * FROM information_schema.TABLE_CONSTRAINTS WHERE table_name = 'tbl_user';
+
+SELECT * FROM tbl_user;
+
+INSERT INTO
+    tbl_user
+VALUES
+    (1,'user01','pass01','홍길동','남',20),
+    (2,'user02','pass01','김ㅁㄹ수','여',30);
+    
+-- INSERT INTO
+--     tbl_user
+-- VALUES
+--    (null,'user03','pass03','똥','남',20); -- Error Code: 1048. Column 'user_no' cannot be null
+--    (2,'user03','pass03','똥','남',20); -- Error Code: 1062. Duplicate entry '2' for key 'tbl_user.PRIMARY'
+
+
+-- 복합키 설정(여러 컬럼을 묶어서 하나의 PK로 설정)
+CREATE TABLE tbl_like(
+    user_no INT,
+    pro_id INT,
+    like_date DATETIME NOT NULL DEFAULT NOW(),
+    
+    PRIMARY KEY(user_no, pro_id) # 원래 프라이머리키는 한개여야하지만 두래를 설정하면 하나로 묶어서 Key가 된다 
+);
+SELECT * FROM information_schema.TABLE_CONSTRAINTS WHERE table_name = 'tbl_like';
+SHOW FULL COLUMNS FROM tbl_like;
+
+SELECT * FROM tbl_like;
+
+INSERT INTO
+    tbl_like(user_no, pro_id)
+VALUES
+    (1,10),
+    (1,20),
+    (2,20);
+
+
+-- INSERT INTO
+--     tbl_like(user_no, pro_id)
+-- VALUES
+--     (1,10); # Error Code: 1062. Duplicate entry '1-10' for key 'tbl_like.PRIMARY'
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/*
+    ## AUTO_INCREMENT
+    INSERT PK 컬럼에 자동으로 번호를 발생시켜 저장시킬 수 있게 하는 구문
+    - PK로 지정된 컬럼에만 부여 가능한 옵션이다.
+    
+    - INSERT시 NULL 또는 0을 지정하면 자동으로 다음 값이 할당됨
+    - INSERT시 직접 값을 제시하면 그 이후부터는 제시한 값보다 큰 숫자부터 자동 증가
+    
+    - null 또는 0으로 값 넣어주면 자동으로 증감됨 (직접 설정하면 그걸로 넣어짐 (그 뒤 자동 증감은 설정한 값부터)
+*/
+DROP TABLE tbl_user;
+CREATE TABLE IF NOT EXISTS tbl_user(
+    user_no INT AUTO_INCREMENT, 
+    user_id VARCHAR(225) NOT NULL UNIQUE, 
+    user_pwd VARCHAR(225) NOT NULL,
+    user_name VARCHAR(225) NOT NULL,
+    gender CHAR(3) CHECK(gender IN ('남','여')),
+    age INT,
+
+    PRIMARY KEY(user_no),
+    CHECK(age >= 19)
+);
+
+SELECT * FROM tbl_user;
+
+INSERT INTO tbl_user
+VALUES (null,'user01','pass01','홍길동',null,null); -- null이라도 자동으로 증간됨 번호
+
+INSERT INTO
+    tbl_user
+VALUES
+    (null,'user02','pass02','김말똔','남',null),
+    (0,'user03','pass03','누구게','여',null);
+
+INSERT INTO tbl_user (user_id,user_pwd,user_name)
+VALUES ('user04','pass04','홍길녀'); 
+
+SELECT last_insert_id(); -- 마지막으로 발생한 번호 조회 함수
+
+INSERT INTO tbl_user
+VALUES (15,'user15','pass02','qwdwdq','남',80); -- 설정한 15로 넣어짐
+
+INSERT INTO tbl_user
+VALUES (null,'user16','pass16','ㄷ쟈','남',80); -- 25부터 자동증감 들어감
+
+
+-- AUTO_INCREMENT 시작값 변경
+ALTER TABLE tbl_user AUTO_INCREMENT = 1000; 
+
+INSERT INTO tbl_user
+VALUES (null,'user167','pass167','오만원','여',80);
+
+
+
+
+
+
+
+
+
+
+
+
+/*
+    PRIMARY KEY (PK, 기본키)
+    FOREIGN KEY (FK,외래키)
+    
+    ## FOREIGN KEY 계약조건
+    참조(reference)된 다른 테이블에서 제공하는 값만 저장간으한 컬럼에 부여하는 제약조건
+*/
+
+-- tbl_user_grage(부모) 1
+-- tbl_user (자식) n
+
+DROP TABLE tbl_user;
+CREATE TABLE tbl_user_grade(
+    grade_id INT PRIMARY KEY,
+    grade_name VARCHAR(225) NOT NULL
+);
+
+SELECT * FROM tbl_user_grade;
+
+INSERT INTO tbl_user_grade
+VALUES 
+    (10,'일반회원'),
+    (20,'우수회원'),
+    (30,'특별회원')
+;
+
+    
+CREATE TABLE IF NOT EXISTS tbl_user(
+    user_no INT PRIMARY KEY AUTO_INCREMENT, 
+    user_id VARCHAR(225) NOT NULL UNIQUE, 
+    user_pwd VARCHAR(225) NOT NULL,
+    user_name VARCHAR(225) NOT NULL,
+    
+    
+    grade_code INT,                                   -- 오로지 tbl_user_grade 테이블의 grade_id만 들어갈 수 잇음
+    FOREIGN KEY(grade_code) REFERENCES tbl_user_grade(grade_id)
+);
+SELECT * FROM tbl_user;
+
+INSERT INTO tbl_user
+VALUES 
+    (null,'user01','pass01','오만원',10),
+    (null,'user02','pass02','만원',20),
+    (null,'user03','pass03','찬원',null)
+;
+
+INSERT INTO tbl_user
+VALUES  (null,'user04','pass04','깅댇즈',50);
+
+
+-- 부모테이블 데이터 수정 및 삭제
+UPDATE tbl_user_grade
+SET grade_id = 100
+WHERE grade_id = 10;  -- 10이라는 부모데이터의 값을 자식이 사용하고 있기 때문에 안댐
+-- Error Code: 1451. Cannot delete or update a parent row: a foreign key constraint fails (`ddldb`.`tbl_user`, CONSTRAINT `tbl_user_ibfk_1` FOREIGN KEY (`grade_code`) REFERENCES `tbl_user_grade` (`grade_id`))
+
+-- 오ㅑ랴키 제약조건 부여시 별도의 옵션을 제시하지 않으면
+-- 해당 부모값을 참조하고 있는 자식 레코드 존재시 수정 및 삭제가 불가하도록 제한 옵션이 걸려이쑈음
+
+DROP TABLE tbl_user;
+CREATE TABLE IF NOT EXISTS tbl_user(
+    user_no INT PRIMARY KEY AUTO_INCREMENT, 
+    user_id VARCHAR(225) NOT NULL UNIQUE, 
+    user_pwd VARCHAR(225) NOT NULL,
+    user_name VARCHAR(225) NOT NULL,
+    
+    grade_code INT,         
+    FOREIGN KEY(grade_code) 
+        REFERENCES tbl_user_grade(grade_id)
+        -- ON UPDATE SET NULL 보무데이터 UPDATE시 헤당 자식값은 null로 변경
+        -- ON DELETE SET NULL 부모 데이터 delete시 해당 자식값은 null로 변경
+        
+        ON UPDATE CASCADE -- > 부모 업데이트시 자식도 같이
+        ON DELETE CASCADE 
+);
+UPDATE tbl_user_grade
+SET grade_id = 100
+WHERE grade_id = 10;
+
+
+
+
+
+
+
+
+
+
+-- ==========================================================================================================
+-- 테이블 생성시 서브쿼리 작성 가능
+
+-- 비싼 메뉴들만 따로 존재하는 테이블
+CREATE TABLE tbl_expensive_menu
+AS
+SELECT menu_code, menu_name, menu_price
+FROM tbl_menu
+WHERE menu_price >= 15000
+;
+
+DESC tbl_expensive_menu;
+
+SELECT * FROM tbl_expensive_menu;
+
+-- 테이블의 컬럼만 복제 - 데이터 빼고
+CREATE TABLE tbl_menu_copy
+AS
+SELECT * 
+FROM tbl_menu
+WHERE 1=0 # 애초에 조건이 거짓이 되는 조건을 달고 넣을 데이터를 배재한다
+;
+
+CREATE TABLE tbl_menu_category
+AS
+SELECT menu_name, category_code
+FROM tbl_menu m
+JOIN tbl_category c ON c.category_code = m.category_code
+;
+
+
+
+
+
+
+-- =======================================================================================================================
+-- =======================================================================================================================
+-- =======================================================================================================================
+-- =======================================================================================================================
+-- =======================================================================================================================
+-- =======================================================================================================================
+-- =======================================================================================================================
+-- =======================================================================================================================
+
+/*
+    ## ALTER
+        1. 객체 구조 변경을 위한 구문
+        2. 구조에 대한 내용을 추가 변경 수정 삭제하는 걸 진행함 - 데이터가아니라
+        
+                ALTER TABLE 테이블명 변경내용
+                
+        - 변경내용 
+            1) 컬럼 추가ㅡ 수정 ㅡ 삭제
+            2) 제약조건 추가, 삭제
+            3) 테이블명 변경
+*/
+/*
+    ## 컬럼 추가
+    ADD 컬럼명 데이터타입 [제약조건] [DEFAULT] [COMMENT] [AFTER 기존 컬럼]
+*/
+DESC tbl_user;
+SELECT * FROM tbl_user;
+
+ALTER TABLE tbl_user ADD email VARCHAR(255); -- 기존의 존재하는 행에는 null로 초기화됨
+ALTER TABLE tbl_user ADD phone VARCHAR(20) UNIQUE AFTER user_name; # user_name 컬럼 바로 뒤에 배치하겠다.
+
+
+ALTER TABLE tbl_user
+    ADD age INT CHECK(age>=19) DEFAULT 19 COMMENT '나이' AFTER phone;
+
+
+
+
+
+
+
+/*
+    ## 컬럼 변경
+    MODIFY 컬럼명   자료형  [DEFAULT]  [COMMENT]  [AFTER 기존 컬럼]
+*/
+ALTER TABLE tbl_user MODIFY phone INT; -- 데이터가 없기 때문에 문자형->숫자 변경 가능, UNIQUE 유지
+ALTER TABLE tbl_user MODIFY user_no VARCHAR(225);
+-- ALTER TABLE tbl_user MODIFY user_id AFTER user_pwd; -- 타입미작성시문법오류 
+
+ALTER TABLE tbl_user MODIFY user_id VARCHAR(50) NOT NULL AFTER user_pwd;
+
+ALTER TABLE tbl_user 
+    MODIFY phone VARCHAR(255) DEFAULT '010-',
+    MODIFY email VARCHAR(255) COMMENT '이메일';
+    
+DESC tbl_user;
+
+
+
+
+
+/*
+    ## 컬럼명 변경
+    RENAME COLUMN 기존 컬럼명 TO 새컬럼명
+*/
+ALTER TABLE tbl_user
+    RENAME COLUMN user_no TO no,
+    RENAME COLUMN user_id TO id,
+    RENAME COLUMN user_pwd TO pwd;
+
+
+/*
+    ## 컬럼 삭제
+    DROP COLUMN
+*/
+ALTER TABLE tbl_user
+    DROP COLUMN phone,
+    DROP COLUMN email;
+    
+    
+ALTER TABLE tbl_like
+    DROP COLUMN user_no,
+    DROP COLUMN pro_id,
+    DROP COLUMN like_date
+;
+
+
+
+/*
+    ## 제약조건  추가
+    ADD [CONSTRAINT 제약조건명] 제약조건(컬럼명)
+    MODIFY 컬럼명 자료형 NOT NULL (NOT NULL 제약조건 부여)
+*/
+SELECT * FROM information_schema.TABLE_CONSTRAINTS WHERE table_name = 'tbl_uer';
+
+ALTER TABLE tbl_user
+    ADD PRIMARY KEY(no),
+    ADD CONSTRAINT user_id_uq UNIQUE(id),
+    ADD CONSTRAINT user_name_chk CHECK(CHAR_LENGTH(user_name) >= 2),
+    ADD CONSTRAINT user_grade_fk FOREIGN KEY(grade_code) REFERENCES tbl_user_grade(grade_id);
+
+ALTER TABLE tbl_user
+    MODIFY id VARCHAR(50) NOT NULL;
+
+
+/*
+    ## 제약조건 삭제
+    DROP CONSTRAINT 제약조건명
+    DROP PRIMARY KEY (PK제약조건 삭제)
+    MODIFY 컬럼명 자료형 NULL ( NOT NULL 삭제)
+*/
+
+ALTER TABLE tbl_user 
+    DROP PRIMARY KEY,
+    DROP CONSTRAINT user_id_uq,
+    DROP CONSTRAINT user_name_chk,
+    MODIFY id VARCHAR(255) NULL;
+
+
+/*
+    ## 테이블명 변경
+    RENAME TO 새테이블명
+*/
+ALTER TABLE tbl_user RENAME TO user_tbl;
+
+
+-- ==========================================================================
+/*
+    ## DROP
+    1. 객체를 삭제하기 위한 구문
+*/
+DROP TABLE IF EXISTS tbl_product;
+DROP TABLE IF EXISTS tbl_user_grade; -- 참조되는 부모 테이블같은 경우 삭제 제한됨
+-- Error Code: 3730. Cannot drop table 'tbl_user_grade' referenced by a foreign key constraint 'tbl_user_ibfk_1' on table 'tbl_user'.
+
+-- 외래키 제약조건을 잠시 비활성화 또는삭제한 루 테이블 삭제하면 가능
+SET FOREIGN_KEY_CHECKS = 0;
+SET FOREIGN_KEY_CHECKS = 1;
+
+/*
+    ## TRUNCATE
+    테이블 내의 데이터만 삭제하는 구문
+    즉, 테이블의 구조는 남기고 모든 행위만 삭제하는 명령어
+    
+    DELETE vs TRUNCATE
+    - DELETE 조건제시 가능 -> 일부행만 삭제도 가능
+    - TRUNCATE는 조건제시 불가능 -> 전체행만 삭제 가능ALTER
+    
+    - DELETE는 삭제기 내부적으로 로그를 남기므로 ROLLBACK 가능, 단 속도 느림
+    - TRUNCATE 는 로그를 남지기 않아 속도는 빠르지만 ROLLBACK 불가능
+*/
+TRUNCATE TABLE tbl_user;
+SELECT * FROM tbl_user;
+ROLLBACK; -- 안돌아옴
 

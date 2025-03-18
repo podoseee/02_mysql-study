@@ -60,4 +60,9 @@ GRANT ALL PRIVILEGES ON chundb.* TO 'podoseee'@'%';
 CREATE DATABASE ddldb;
 GRANT ALL PRIVILEGES ON ddldb.* TO 'podoseee'@'%';
 
+-- homework database 만들기
+CREATE DATABASE homeworkdb;
+GRANT ALL PRIVILEGES ON homeworkdb.* TO 'podoseee'@'%';
 
+-- FUNCTION 생성을 위해 바이너리 로깅 비활성화
+SET GLOBAL log_bin_trust_function_creators = 1;
