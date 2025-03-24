@@ -617,6 +617,22 @@ SELECT * FROM user_tbl;
 
 ROLLBACK; -- 안됨
 
+
+-- * WITH CHECT OPTION : 뷰의 데이터 일관성 유지를 위해 DML을 통해 데이터 삽입 및 수정시 서브쿼리의 WHERE조건에 해당하는 것만 가능 
  
+ CREATE OR REPLACE VIEW vw_menu_expensive
+ AS
+ SELECT 
+    *
+FROM
+    tbl_menu
+WHERE
+    menu_price >= 20000
+WITH CHECK OPTION; -- 해당하는 것만 조회됨. 아니면 오류
+
+SELECT * FROM vw_menu_expensive;
+
+-- 결론 : view 는 특정데이터 조회를 위해 만드는 객체 >> dml은 지양/ 조회용으로만 사용하자
+
 
 
